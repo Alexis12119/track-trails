@@ -18,6 +18,7 @@ const LocationTracker = () => {
   const [location, setLocation] = useState(null);
   const [tracking, setTracking] = useState(false);
   const [path, setPath] = useState([]);
+  const [stopped, setStopped] = useState(false);
 
   const watchPosition = useCallback(() => {
     navigator.geolocation.watchPosition(
@@ -44,6 +45,7 @@ const LocationTracker = () => {
 
   useEffect(() => {
     if (tracking) {
+      setStopped(false);
       watchPosition();
     }
   }, [tracking, watchPosition]);
@@ -52,9 +54,11 @@ const LocationTracker = () => {
     if (tracking) {
       if (window.confirm("Are you sure you want to stop tracking?")) {
         setTracking(false);
+        setStopped(true);
       }
     } else {
       setTracking(true);
+      setPath([]); // Clear the path when starting a new tracking session
     }
   };
 
@@ -72,10 +76,13 @@ const LocationTracker = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-          {path.map((pos, index) => (
-            <Marker key={index} position={pos}></Marker>
-          ))}
-          <Polyline positions={path} color="blue" />
+          {path.length > 0 && (
+            <>
+              <Marker position={path[0]}></Marker> {/* Start Marker */}
+              <Polyline positions={path} color="blue" />
+              {stopped && <Marker position={path[path.length - 1]}></Marker>} {/* End Marker only if stopped */}
+            </>
+          )}
         </MapContainer>
       )}
     </div>
