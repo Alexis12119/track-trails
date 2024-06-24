@@ -141,7 +141,7 @@ const LocationTracker = () => {
       </div>
       <div className="w-3/4 h-full">
         <MapContainer
-          center={location || [51.505, -0.09]}
+          center={location}
           zoom={13}
           className="h-full"
         >
