@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { db } from "./firebase";
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
 
 // Fix leaflet's default icon issue with Webpack
 delete L.Icon.Default.prototype._getIconUrl;
@@ -22,6 +22,8 @@ const LocationTracker = () => {
   const [path, setPath] = useState([]);
   const [trails, setTrails] = useState([]);
   const [selectedTrail, setSelectedTrail] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [newTrailName, setNewTrailName] = useState("");
 
   const fetchTrails = useCallback(async () => {
     try {
@@ -115,6 +117,38 @@ const LocationTracker = () => {
   const handleTrailSelect = (trail) => {
     setSelectedTrail(trail);
     setLocation([trail.start.latitude, trail.start.longitude]);
+    setNewTrailName(trail.name);
+    setIsEditing(false);
+  };
+
+  const handleDeleteTrail = async (trailId) => {
+    if (window.confirm("Are you sure you want to delete this trail?")) {
+      try {
+        await deleteDoc(doc(db, "trails", trailId));
+        console.log("Trail deleted successfully");
+        fetchTrails();
+        setSelectedTrail(null);
+      } catch (error) {
+        console.error("Error deleting trail:", error);
+      }
+    }
+  };
+
+  const handleEditTrail = async () => {
+    if (selectedTrail && newTrailName.trim() !== "") {
+      try {
+        await updateDoc(doc(db, "trails", selectedTrail.id), {
+          name: newTrailName,
+        });
+        console.log("Trail updated successfully");
+        fetchTrails();
+        setIsEditing(false);
+      } catch (error) {
+        console.error("Error updating trail:", error);
+      }
+    } else {
+      alert("Trail name cannot be empty");
+    }
   };
 
   const MapUpdater = ({ location }) => {
@@ -143,10 +177,19 @@ const LocationTracker = () => {
           {trails.map((trail) => (
             <li
               key={trail.id}
-              className="cursor-pointer hover:bg-gray-200 p-2 rounded"
+              className="cursor-pointer hover:bg-gray-200 p-2 rounded flex justify-between items-center"
               onClick={() => handleTrailSelect(trail)}
             >
               {trail.name}
+              <button
+                className="ml-2 text-red-500"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteTrail(trail.id);
+                }}
+              >
+                Delete
+              </button>
             </li>
           ))}
         </ul>
@@ -170,6 +213,37 @@ const LocationTracker = () => {
                 color="blue"
               />
               <Marker position={[selectedTrail.stop.latitude, selectedTrail.stop.longitude]}></Marker>
+              <div className="absolute top-10 right-10 bg-white p-4 rounded shadow-lg">
+                {isEditing ? (
+                  <>
+                    <input
+                      type="text"
+                      value={newTrailName}
+                      onChange={(e) => setNewTrailName(e.target.value)}
+                      className="mb-2 p-2 border border-gray-300 rounded w-full"
+                    />
+                    <button
+                      onClick={handleEditTrail}
+                      className="px-4 py-2 bg-green-500 text-white rounded w-full"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setIsEditing(false)}
+                      className="mt-2 px-4 py-2 bg-gray-500 text-white rounded w-full"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="px-4 py-2 bg-yellow-500 text-white rounded w-full"
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
             </>
           )}
           {tracking && path.length > 0 && (
