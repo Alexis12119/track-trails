@@ -203,7 +203,8 @@ const LocationTracker = () => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
             <MapUpdater location={location} />
-            {selectedTrail && (
+            
+            {selectedTrail && !tracking && (
               <>
                 <Marker position={[selectedTrail.start.latitude, selectedTrail.start.longitude]}></Marker>
                 <Polyline
@@ -213,6 +214,7 @@ const LocationTracker = () => {
                 <Marker position={[selectedTrail.stop.latitude, selectedTrail.stop.longitude]}></Marker>
               </>
             )}
+            
             {tracking && path.length > 0 && (
               <>
                 <Marker position={[path[0].latitude, path[0].longitude]}></Marker>
