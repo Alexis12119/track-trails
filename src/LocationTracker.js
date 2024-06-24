@@ -21,11 +21,12 @@ const LocationTracker = () => {
   const [tracking, setTracking] = useState(false);
   const [path, setPath] = useState([]);
   const [trails, setTrails] = useState([]);
+  const [selectedTrail, setSelectedTrail] = useState(null);
 
   const fetchTrails = useCallback(async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "trails"));
-      const trailsData = querySnapshot.docs.map((doc) => doc.data());
+      const trailsData = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setTrails(trailsData);
       console.log("Fetched trails:", trailsData);
     } catch (error) {
@@ -76,6 +77,7 @@ const LocationTracker = () => {
 
         try {
           await addDoc(collection(db, "trails"), {
+            name: `Trail ${trails.length + 1}`,
             start: startLocation,
             stop: stopLocation,
             path: path,
@@ -93,58 +95,56 @@ const LocationTracker = () => {
     }
   };
 
+  const handleTrailSelect = (trail) => {
+    setSelectedTrail(trail);
+    setLocation([trail.start.latitude, trail.start.longitude]);
+  };
+
   return (
-    <div className="h-screen flex flex-col items-center justify-center">
-      <button
-        onClick={handleStartStop}
-        className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
-      >
-        {tracking ? "Stop" : "Start"}
-      </button>
-      {location && (
-        <div className="w-full h-2/3">
-          <MapContainer center={location} zoom={13} className="h-full">
+    <div className="h-screen flex">
+      <div className="w-1/4 h-full p-4 bg-gray-100">
+        <button
+          onClick={handleStartStop}
+          className="mb-4 px-4 py-2 bg-blue-500 text-white rounded w-full"
+        >
+          {tracking ? "Stop" : "Start"}
+        </button>
+        <h2 className="font-bold mb-4">Previous Trails</h2>
+        <ul>
+          {trails.map((trail) => (
+            <li
+              key={trail.id}
+              className="cursor-pointer hover:bg-gray-200 p-2 rounded"
+              onClick={() => handleTrailSelect(trail)}
+            >
+              {trail.name}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="w-3/4 h-full">
+        {selectedTrail ? (
+          <MapContainer
+            center={[selectedTrail.start.latitude, selectedTrail.start.longitude]}
+            zoom={13}
+            className="h-full"
+          >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
-            {path.length > 0 && (
-              <>
-                <Marker position={[path[0].latitude, path[0].longitude]}></Marker>
-                <Polyline
-                  positions={path.map((pos) => [pos.latitude, pos.longitude])}
-                  color="blue"
-                />
-                {tracking && <Marker position={location}></Marker>}
-              </>
-            )}
+            <Marker position={[selectedTrail.start.latitude, selectedTrail.start.longitude]}></Marker>
+            <Polyline
+              positions={selectedTrail.path.map((pos) => [pos.latitude, pos.longitude])}
+              color="blue"
+            />
+            <Marker position={[selectedTrail.stop.latitude, selectedTrail.stop.longitude]}></Marker>
           </MapContainer>
-        </div>
-      )}
-      <div className="mt-4 w-full h-1/3 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {trails.map((trail, index) => (
-          <div key={index} className="p-2 border rounded">
-            <h3 className="font-bold">Trail {index + 1}</h3>
-            <MapContainer
-              center={[trail.start.latitude, trail.start.longitude]}
-              zoom={13}
-              className="h-48 w-full"
-            >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              />
-              <Marker position={[trail.start.latitude, trail.start.longitude]}></Marker>
-              <Polyline
-                positions={trail.path.map((pos) => [pos.latitude, pos.longitude])}
-                color="blue"
-              />
-              <Marker position={[trail.stop.latitude, trail.stop.longitude]}></Marker>
-            </MapContainer>
-            <p>Start: {trail.start.latitude}, {trail.start.longitude}</p>
-            <p>Stop: {trail.stop.latitude}, {trail.stop.longitude}</p>
+        ) : (
+          <div className="h-full flex items-center justify-center">
+            <p>Select a trail from the menu</p>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
