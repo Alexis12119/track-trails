@@ -184,8 +184,41 @@ const LocationTracker = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col lg:flex-row">
-      <div className="w-full lg:w-1/4 h-1/2 lg:h-full p-4 bg-gray-100 overflow-auto">
+    <div className="h-screen flex flex-col">
+      <div className="flex-1">
+        <MapContainer
+          center={location || [51.505, -0.09]}
+          zoom={13}
+          className="h-full"
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          <MapUpdater location={location} />
+          {selectedTrail && (
+            <>
+              <Marker position={[selectedTrail.start.latitude, selectedTrail.start.longitude]}></Marker>
+              <Polyline
+                positions={selectedTrail.path.map((pos) => [pos.latitude, pos.longitude])}
+                color="blue"
+              />
+              <Marker position={[selectedTrail.stop.latitude, selectedTrail.stop.longitude]}></Marker>
+            </>
+          )}
+          {tracking && path.length > 0 && (
+            <>
+              <Marker position={[path[0].latitude, path[0].longitude]}></Marker>
+              <Polyline
+                positions={path.map((pos) => [pos.latitude, pos.longitude])}
+                color="red"
+              />
+              <Marker position={location}></Marker>
+            </>
+          )}
+        </MapContainer>
+      </div>
+      <div className="w-full h-1/4 p-4 bg-gray-100 overflow-auto">
         <button
           onClick={handleStartStop}
           className="mb-4 px-4 py-2 bg-blue-500 text-white rounded w-full"
@@ -252,39 +285,6 @@ const LocationTracker = () => {
             </li>
           ))}
         </ul>
-      </div>
-      <div className="w-full lg:w-3/4 h-1/2 lg:h-full">
-        <MapContainer
-          center={location || [51.505, -0.09]}
-          zoom={13}
-          className="h-full"
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          />
-          <MapUpdater location={location} />
-          {selectedTrail && (
-            <>
-              <Marker position={[selectedTrail.start.latitude, selectedTrail.start.longitude]}></Marker>
-              <Polyline
-                positions={selectedTrail.path.map((pos) => [pos.latitude, pos.longitude])}
-                color="blue"
-              />
-              <Marker position={[selectedTrail.stop.latitude, selectedTrail.stop.longitude]}></Marker>
-            </>
-          )}
-          {tracking && path.length > 0 && (
-            <>
-              <Marker position={[path[0].latitude, path[0].longitude]}></Marker>
-              <Polyline
-                positions={path.map((pos) => [pos.latitude, pos.longitude])}
-                color="red"
-              />
-              <Marker position={location}></Marker>
-            </>
-          )}
-        </MapContainer>
       </div>
     </div>
   );
