@@ -23,6 +23,21 @@ const LocationTracker = () => {
   const [stopped, setStopped] = useState(false);
   const [trails, setTrails] = useState([]);
 
+  const fetchTrails = useCallback(async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "trails"));
+      const trailsData = querySnapshot.docs.map((doc) => doc.data());
+      setTrails(trailsData);
+      console.log("Fetched trails:", trailsData);
+    } catch (error) {
+      console.error("Error fetching trails:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTrails();
+  }, [fetchTrails]);
+
   const watchPosition = useCallback(() => {
     navigator.geolocation.watchPosition(
       (position) => {
@@ -41,7 +56,7 @@ const LocationTracker = () => {
           setTimeout(watchPosition, 5000);
         }
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   }, []);
 
@@ -51,21 +66,6 @@ const LocationTracker = () => {
       watchPosition();
     }
   }, [tracking, watchPosition]);
-
-  useEffect(() => {
-    const fetchTrails = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "trails"));
-        const trailsData = querySnapshot.docs.map((doc) => doc.data());
-        setTrails(trailsData);
-        console.log("Fetched trails:", trailsData);
-      } catch (error) {
-        console.error("Error fetching trails:", error);
-      }
-    };
-
-    fetchTrails();
-  }, []);
 
   const handleStartStop = async () => {
     if (tracking) {
@@ -84,6 +84,7 @@ const LocationTracker = () => {
             timestamp: new Date(),
           });
           console.log("Trail saved successfully");
+          fetchTrails(); // Fetch updated trails after saving the new trail
         } catch (error) {
           console.error("Error saving trail:", error);
         }
