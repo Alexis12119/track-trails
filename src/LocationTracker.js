@@ -1,5 +1,3 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { db } from "./firebase";
@@ -20,7 +18,6 @@ const LocationTracker = () => {
   const [location, setLocation] = useState(null);
   const [tracking, setTracking] = useState(false);
   const [path, setPath] = useState([]);
-  const [stopped, setStopped] = useState(false);
   const [trails, setTrails] = useState([]);
 
   const fetchTrails = useCallback(async () => {
@@ -38,40 +35,40 @@ const LocationTracker = () => {
     fetchTrails();
   }, [fetchTrails]);
 
-  const watchPosition = useCallback(() => {
-    navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setLocation([latitude, longitude]);
-        setPath((prevPath) => {
-          if (prevPath.length === 0) {
-            return [{ latitude, longitude }];
-          }
-          return [...prevPath, { latitude, longitude }];
-        });
-      },
-      (error) => {
-        console.error(error);
-        if (error.code === 3) {
-          setTimeout(watchPosition, 5000);
-        }
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
-  }, []);
-
   useEffect(() => {
+    let watchId;
     if (tracking) {
-      setStopped(false);
-      watchPosition();
+      watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocation([latitude, longitude]);
+          setPath((prevPath) => [...prevPath, { latitude, longitude }]);
+        },
+        (error) => {
+          console.error(error);
+          if (error.code === 3) {
+            setTimeout(() => {
+              if (tracking) watchPosition();
+            }, 5000);
+          }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } else if (watchId) {
+      navigator.geolocation.clearWatch(watchId);
     }
-  }, [tracking, watchPosition]);
+
+    return () => {
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
+  }, [tracking]);
 
   const handleStartStop = async () => {
     if (tracking) {
       if (window.confirm("Are you sure you want to stop tracking?")) {
         setTracking(false);
-        setStopped(true);
 
         const startLocation = path[0];
         const stopLocation = path[path.length - 1];
@@ -84,7 +81,7 @@ const LocationTracker = () => {
             timestamp: new Date(),
           });
           console.log("Trail saved successfully");
-          fetchTrails(); // Fetch updated trails after saving the new trail
+          fetchTrails();
         } catch (error) {
           console.error("Error saving trail:", error);
         }
@@ -117,13 +114,8 @@ const LocationTracker = () => {
                   positions={path.map((pos) => [pos.latitude, pos.longitude])}
                   color="blue"
                 />
-                {stopped && (
-                  <Marker
-                    position={[
-                      path[path.length - 1].latitude,
-                      path[path.length - 1].longitude,
-                    ]}
-                  ></Marker>
+                {tracking && (
+                  <Marker position={location}></Marker>
                 )}
               </>
             )}
