@@ -140,51 +140,36 @@ const LocationTracker = () => {
         </ul>
       </div>
       <div className="w-3/4 h-full">
-        {selectedTrail ? (
-          <MapContainer
-            center={[selectedTrail.start.latitude, selectedTrail.start.longitude]}
-            zoom={13}
-            className="h-full"
-          >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            />
-            <Marker position={[selectedTrail.start.latitude, selectedTrail.start.longitude]}></Marker>
-            <Polyline
-              positions={selectedTrail.path.map((pos) => [pos.latitude, pos.longitude])}
-              color="blue"
-            />
-            <Marker position={[selectedTrail.stop.latitude, selectedTrail.stop.longitude]}></Marker>
-          </MapContainer>
-        ) : (
-          tracking && location ? (
-            <MapContainer
-              center={location}
-              zoom={13}
-              className="h-full"
-            >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        <MapContainer
+          center={location || [51.505, -0.09]}
+          zoom={13}
+          className="h-full"
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          {selectedTrail && (
+            <>
+              <Marker position={[selectedTrail.start.latitude, selectedTrail.start.longitude]}></Marker>
+              <Polyline
+                positions={selectedTrail.path.map((pos) => [pos.latitude, pos.longitude])}
+                color="blue"
               />
-              {path.length > 0 && (
-                <>
-                  <Marker position={[path[0].latitude, path[0].longitude]}></Marker>
-                  <Polyline
-                    positions={path.map((pos) => [pos.latitude, pos.longitude])}
-                    color="blue"
-                  />
-                  <Marker position={location}></Marker>
-                </>
-              )}
-            </MapContainer>
-          ) : (
-            <div className="h-full flex items-center justify-center">
-              <p>Select a trail from the menu or start tracking</p>
-            </div>
-          )
-        )}
+              <Marker position={[selectedTrail.stop.latitude, selectedTrail.stop.longitude]}></Marker>
+            </>
+          )}
+          {tracking && path.length > 0 && (
+            <>
+              <Marker position={[path[0].latitude, path[0].longitude]}></Marker>
+              <Polyline
+                positions={path.map((pos) => [pos.latitude, pos.longitude])}
+                color="red"
+              />
+              <Marker position={location}></Marker>
+            </>
+          )}
+        </MapContainer>
       </div>
     </div>
   );
