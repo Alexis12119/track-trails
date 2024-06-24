@@ -184,8 +184,8 @@ const LocationTracker = () => {
   };
 
   return (
-    <div className="h-screen flex">
-      <div className="w-1/4 h-full p-4 bg-gray-100">
+    <div className="h-screen flex flex-col lg:flex-row">
+      <div className="w-full lg:w-1/4 h-1/2 lg:h-full p-4 bg-gray-100 overflow-auto">
         <button
           onClick={handleStartStop}
           className="mb-4 px-4 py-2 bg-blue-500 text-white rounded w-full"
@@ -201,12 +201,12 @@ const LocationTracker = () => {
               onClick={() => handleTrailSelect(trail)}
             >
               {trail.id === editingTrail?.id ? (
-                <form onSubmit={handleEditSubmit} className="flex items-center">
+                <form onSubmit={handleEditSubmit} className="flex items-center w-full">
                   <input
                     type="text"
                     value={newTrailName}
                     onChange={(e) => setNewTrailName(e.target.value)}
-                    className="p-1 border rounded"
+                    className="p-1 border rounded flex-grow"
                   />
                   <button type="submit" className="ml-2 px-2 py-1 bg-blue-500 text-white rounded">
                     Save
@@ -253,7 +253,7 @@ const LocationTracker = () => {
           ))}
         </ul>
       </div>
-      <div className="w-3/4 h-full">
+      <div className="w-full lg:w-3/4 h-1/2 lg:h-full">
         <MapContainer
           center={location || [51.505, -0.09]}
           zoom={13}
