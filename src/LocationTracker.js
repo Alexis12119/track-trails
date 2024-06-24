@@ -185,11 +185,19 @@ const LocationTracker = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      <div className="flex-1">
+      <div className="p-4 bg-gray-100">
+        <button
+          onClick={handleStartStop}
+          className="mb-4 px-4 py-2 bg-blue-500 text-white rounded w-full"
+        >
+          {tracking ? "Stop" : "Start"}
+        </button>
+      </div>
+      <div className="flex-1 relative">
         <MapContainer
           center={location || [51.505, -0.09]}
           zoom={13}
-          className="h-full"
+          className="absolute inset-0"
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -219,12 +227,6 @@ const LocationTracker = () => {
         </MapContainer>
       </div>
       <div className="w-full h-1/4 p-4 bg-gray-100 overflow-auto">
-        <button
-          onClick={handleStartStop}
-          className="mb-4 px-4 py-2 bg-blue-500 text-white rounded w-full"
-        >
-          {tracking ? "Stop" : "Start"}
-        </button>
         <h2 className="font-bold mb-4">Previous Trails</h2>
         <ul>
           {trails.map((trail) => (
