@@ -22,7 +22,7 @@ const LocationTracker = () => {
   const [path, setPath] = useState([]);
   const [trails, setTrails] = useState([]);
   const [selectedTrail, setSelectedTrail] = useState(null);
-  const [dropdowns, setDropdowns] = useState({});
+  const [openDropdownId, setOpenDropdownId] = useState(null);
   const [editingTrail, setEditingTrail] = useState(null);
   const [newTrailName, setNewTrailName] = useState("");
 
@@ -121,16 +121,13 @@ const LocationTracker = () => {
   };
 
   const handleDropdownToggle = (trailId) => {
-    setDropdowns((prevDropdowns) => ({
-      ...prevDropdowns,
-      [trailId]: !prevDropdowns[trailId],
-    }));
+    setOpenDropdownId((prevDropdownId) => (prevDropdownId === trailId ? null : trailId));
   };
 
   const handleEditTrail = (trail) => {
     setEditingTrail(trail);
     setNewTrailName(trail.name);
-    setDropdowns({});
+    setOpenDropdownId(null);
   };
 
   const handleDeleteTrail = async (trailId) => {
@@ -269,7 +266,7 @@ const LocationTracker = () => {
                   >
                     ⋮
                   </button>
-                  {dropdowns[trail.id] && (
+                  {openDropdownId === trail.id && (
                     <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-md z-10">
                       <button
                         className="block w-full px-4 py-2 text-left hover:bg-gray-200"
