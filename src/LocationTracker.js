@@ -220,7 +220,7 @@ const LocationTracker = () => {
           </MapContainer>
         </div>
       </div>
-      <div className="p-4 bg-gray-100">
+      <div className="p-4 bg-gray-100 w-full">
         <button
           onClick={handleStartStop}
           className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
