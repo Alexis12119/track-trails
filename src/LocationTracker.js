@@ -175,13 +175,13 @@ const LocationTracker = () => {
                     positions={path.map((pos) => [pos.latitude, pos.longitude])}
                     color="blue"
                   />
-                  {tracking && <Marker position={location}></Marker>}
+                  <Marker position={location}></Marker>
                 </>
               )}
             </MapContainer>
           ) : (
             <div className="h-full flex items-center justify-center">
-              <p>Select a trail from the menu</p>
+              <p>Select a trail from the menu or start tracking</p>
             </div>
           )
         )}
