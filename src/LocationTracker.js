@@ -22,6 +22,7 @@ const LocationTracker = () => {
   const [path, setPath] = useState([]);
   const [trails, setTrails] = useState([]);
   const [selectedTrail, setSelectedTrail] = useState(null);
+  const [sidebarVisible, setSidebarVisible] = useState(true);
 
   const fetchTrails = useCallback(async () => {
     try {
@@ -131,27 +132,35 @@ const LocationTracker = () => {
 
   return (
     <div className="h-screen flex">
-      <div className="w-1/4 h-full p-4 bg-gray-100">
-        <button
-          onClick={handleStartStop}
-          className="mb-4 px-4 py-2 bg-blue-500 text-white rounded w-full"
-        >
-          {tracking ? "Stop" : "Start"}
-        </button>
-        <h2 className="font-bold mb-4">Previous Trails</h2>
-        <ul>
-          {trails.map((trail) => (
-            <li
-              key={trail.id}
-              className="cursor-pointer hover:bg-gray-200 p-2 rounded"
-              onClick={() => handleTrailSelect(trail)}
-            >
-              {trail.name}
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className="w-3/4 h-full">
+      <button
+        onClick={() => setSidebarVisible(!sidebarVisible)}
+        className="absolute top-4 left-4 z-10 px-4 py-2 bg-blue-500 text-white rounded"
+      >
+        {sidebarVisible ? "Hide" : "Show"} Sidebar
+      </button>
+      {sidebarVisible && (
+        <div className="w-1/4 h-full p-4 bg-gray-100">
+          <button
+            onClick={handleStartStop}
+            className="mb-4 px-4 py-2 bg-blue-500 text-white rounded w-full"
+          >
+            {tracking ? "Stop" : "Start"}
+          </button>
+          <h2 className="font-bold mb-4">Previous Trails</h2>
+          <ul>
+            {trails.map((trail) => (
+              <li
+                key={trail.id}
+                className="cursor-pointer hover:bg-gray-200 p-2 rounded"
+                onClick={() => handleTrailSelect(trail)}
+              >
+                {trail.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div className={`h-full ${sidebarVisible ? "w-3/4" : "w-full"}`}>
         <MapContainer
           center={location || [51.505, -0.09]}
           zoom={13}
