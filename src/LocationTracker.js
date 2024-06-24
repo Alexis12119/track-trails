@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { db } from "./firebase";
@@ -117,6 +117,18 @@ const LocationTracker = () => {
     setLocation([trail.start.latitude, trail.start.longitude]);
   };
 
+  const MapUpdater = ({ location }) => {
+    const map = useMap();
+
+    useEffect(() => {
+      if (location) {
+        map.setView(location);
+      }
+    }, [location, map]);
+
+    return null;
+  };
+
   return (
     <div className="h-screen flex">
       <div className="w-1/4 h-full p-4 bg-gray-100">
@@ -141,7 +153,7 @@ const LocationTracker = () => {
       </div>
       <div className="w-3/4 h-full">
         <MapContainer
-          center={location}
+          center={location || [51.505, -0.09]}
           zoom={13}
           className="h-full"
         >
@@ -149,6 +161,7 @@ const LocationTracker = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
+          <MapUpdater location={location} />
           {selectedTrail && (
             <>
               <Marker position={[selectedTrail.start.latitude, selectedTrail.start.longitude]}></Marker>
