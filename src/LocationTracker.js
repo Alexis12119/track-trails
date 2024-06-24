@@ -16,45 +16,6 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-const PasswordPrompt = ({ onPasswordSubmit }) => {
-  const [password, setPassword] = useState("");
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (password === "123") {
-      onPasswordSubmit(true);
-    } else {
-      alert("Incorrect password");
-    }
-  };
-
-  return (
-    <div className="h-screen flex items-center justify-center">
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md">
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-        >
-          Submit
-        </button>
-      </form>
-    </div>
-  );
-};
-
 const LocationTracker = () => {
   const [location, setLocation] = useState(null);
   const [tracking, setTracking] = useState(false);
@@ -64,7 +25,6 @@ const LocationTracker = () => {
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [editingTrail, setEditingTrail] = useState(null);
   const [newTrailName, setNewTrailName] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const fetchTrails = useCallback(async () => {
     try {
@@ -140,7 +100,6 @@ const LocationTracker = () => {
     } else {
       setTracking(true);
       setPath([]);
-      setSelectedTrail(null); // Reset the selected trail
       // Initialize location to the current position when starting tracking
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -157,14 +116,6 @@ const LocationTracker = () => {
   };
 
   const handleTrailSelect = (trail) => {
-    if (tracking) {
-      if (window.confirm("Tracking is ongoing. Do you want to stop tracking and view the trail?")) {
-        setTracking(false);
-        setPath([]);
-      } else {
-        return;
-      }
-    }
     setSelectedTrail(trail);
     setLocation([trail.start.latitude, trail.start.longitude]);
   };
@@ -228,10 +179,6 @@ const LocationTracker = () => {
 
     return null;
   };
-
-  if (!isAuthenticated) {
-    return <PasswordPrompt onPasswordSubmit={setIsAuthenticated} />;
-  }
 
   return (
     <div className="h-screen flex flex-col">
