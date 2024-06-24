@@ -3,18 +3,18 @@ import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { db } from "./firebase";
-import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
-import Modal from "react-modal";
+import { collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore";
 
 // Fix leaflet's default icon issue with Webpack
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
-
-Modal.setAppElement("#root"); // Set the root element for accessibility
 
 const LocationTracker = () => {
   const [location, setLocation] = useState(null);
@@ -22,9 +22,7 @@ const LocationTracker = () => {
   const [path, setPath] = useState([]);
   const [trails, setTrails] = useState([]);
   const [selectedTrail, setSelectedTrail] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [newTrailName, setNewTrailName] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [dropdowns, setDropdowns] = useState({});
 
   const fetchTrails = useCallback(async () => {
     try {
@@ -118,9 +116,18 @@ const LocationTracker = () => {
   const handleTrailSelect = (trail) => {
     setSelectedTrail(trail);
     setLocation([trail.start.latitude, trail.start.longitude]);
-    setNewTrailName(trail.name);
-    setIsEditing(false);
-    setIsModalOpen(true);
+  };
+
+  const handleDropdownToggle = (trailId) => {
+    setDropdowns((prevDropdowns) => ({
+      ...prevDropdowns,
+      [trailId]: !prevDropdowns[trailId],
+    }));
+  };
+
+  const handleEditTrail = (trail) => {
+    // Implement trail editing logic here
+    console.log("Edit trail:", trail);
   };
 
   const handleDeleteTrail = async (trailId) => {
@@ -129,29 +136,9 @@ const LocationTracker = () => {
         await deleteDoc(doc(db, "trails", trailId));
         console.log("Trail deleted successfully");
         fetchTrails();
-        setSelectedTrail(null);
-        setIsModalOpen(false);
       } catch (error) {
         console.error("Error deleting trail:", error);
       }
-    }
-  };
-
-  const handleEditTrail = async () => {
-    if (selectedTrail && newTrailName.trim() !== "") {
-      try {
-        await updateDoc(doc(db, "trails", selectedTrail.id), {
-          name: newTrailName,
-        });
-        console.log("Trail updated successfully");
-        fetchTrails();
-        setIsEditing(false);
-        setIsModalOpen(false);
-      } catch (error) {
-        console.error("Error updating trail:", error);
-      }
-    } else {
-      alert("Trail name cannot be empty");
     }
   };
 
@@ -181,10 +168,35 @@ const LocationTracker = () => {
           {trails.map((trail) => (
             <li
               key={trail.id}
-              className="cursor-pointer hover:bg-gray-200 p-2 rounded flex justify-between items-center"
+              className="relative cursor-pointer hover:bg-gray-200 p-2 rounded flex justify-between items-center"
               onClick={() => handleTrailSelect(trail)}
             >
               {trail.name}
+              <button
+                className="ml-2 px-2 py-1 bg-gray-300 rounded"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDropdownToggle(trail.id);
+                }}
+              >
+                ⋮
+              </button>
+              {dropdowns[trail.id] && (
+                <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-md z-10">
+                  <button
+                    className="block w-full px-4 py-2 text-left hover:bg-gray-200"
+                    onClick={() => handleEditTrail(trail)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="block w-full px-4 py-2 text-left hover:bg-gray-200"
+                    onClick={() => handleDeleteTrail(trail.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
             </li>
           ))}
         </ul>
@@ -222,60 +234,6 @@ const LocationTracker = () => {
           )}
         </MapContainer>
       </div>
-
-      {/* Modal for editing and deleting trail */}
-      <Modal
-        isOpen={isModalOpen}
-        onRequestClose={() => setIsModalOpen(false)}
-        contentLabel="Edit or Delete Trail"
-        className="modal"
-        overlayClassName="modal-overlay"
-      >
-        <h2 className="font-bold mb-4">Edit or Delete Trail</h2>
-        {isEditing ? (
-          <>
-            <input
-              type="text"
-              value={newTrailName}
-              onChange={(e) => setNewTrailName(e.target.value)}
-              className="mb-2 p-2 border border-gray-300 rounded w-full"
-            />
-            <button
-              onClick={handleEditTrail}
-              className="px-4 py-2 bg-green-500 text-white rounded w-full"
-            >
-              Save
-            </button>
-            <button
-              onClick={() => setIsEditing(false)}
-              className="mt-2 px-4 py-2 bg-gray-500 text-white rounded w-full"
-            >
-              Cancel
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              onClick={() => setIsEditing(true)}
-              className="px-4 py-2 bg-yellow-500 text-white rounded w-full"
-            >
-              Edit
-            </button>
-            <button
-              onClick={() => handleDeleteTrail(selectedTrail.id)}
-              className="mt-2 px-4 py-2 bg-red-500 text-white rounded w-full"
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="mt-2 px-4 py-2 bg-gray-500 text-white rounded w-full"
-            >
-              Close
-            </button>
-          </>
-        )}
-      </Modal>
     </div>
   );
 };
