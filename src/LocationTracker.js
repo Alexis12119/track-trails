@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { db } from "./firebase";
+import { db } from "./firebase"; 
 import { collection, addDoc, getDocs } from "firebase/firestore";
 
 // Fix leaflet's default icon issue with Webpack
@@ -68,14 +68,15 @@ const LocationTracker = () => {
       if (window.confirm("Are you sure you want to stop tracking?")) {
         setTracking(false);
         setStopped(true);
-        
+
         // Save trail to Firestore
         const startLocation = path[0];
         const stopLocation = path[path.length - 1];
         await addDoc(collection(db, "trails"), {
           start: startLocation,
           stop: stopLocation,
-          path: path
+          path: path,
+          timestamp: new Date()
         });
       }
     } else {
@@ -107,10 +108,23 @@ const LocationTracker = () => {
           )}
         </MapContainer>
       )}
-      <div className="mt-4 w-full h-1/3 overflow-y-auto">
+      <div className="mt-4 w-full h-1/3 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {trails.map((trail, index) => (
-          <div key={index} className="mb-2 p-2 border rounded">
+          <div key={index} className="p-2 border rounded">
             <h3 className="font-bold">Trail {index + 1}</h3>
+            <MapContainer
+              center={trail.start}
+              zoom={13}
+              className="h-48 w-full"
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              />
+              <Marker position={trail.start}></Marker>
+              <Polyline positions={trail.path} color="blue" />
+              <Marker position={trail.stop}></Marker>
+            </MapContainer>
             <p>Start: {trail.start.join(", ")}</p>
             <p>Stop: {trail.stop.join(", ")}</p>
           </div>
