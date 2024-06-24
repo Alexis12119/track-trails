@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { db } from "./firebase"; 
+import { db } from "./firebase";
 import { collection, addDoc, getDocs } from "firebase/firestore";
 
 // Fix leaflet's default icon issue with Webpack
@@ -30,16 +30,15 @@ const LocationTracker = () => {
         setLocation([latitude, longitude]);
         setPath((prevPath) => {
           if (prevPath.length === 0) {
-            return [[latitude, longitude]];
+            return [{ latitude, longitude }];
           }
-          return [...prevPath, [latitude, longitude]];
+          return [...prevPath, { latitude, longitude }];
         });
       },
       (error) => {
         console.error(error);
         if (error.code === 3) {
-          // Timeout
-          setTimeout(watchPosition, 5000); // Retry after 5 seconds
+          setTimeout(watchPosition, 5000);
         }
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
@@ -55,9 +54,14 @@ const LocationTracker = () => {
 
   useEffect(() => {
     const fetchTrails = async () => {
-      const querySnapshot = await getDocs(collection(db, "trails"));
-      const trailsData = querySnapshot.docs.map((doc) => doc.data());
-      setTrails(trailsData);
+      try {
+        const querySnapshot = await getDocs(collection(db, "trails"));
+        const trailsData = querySnapshot.docs.map((doc) => doc.data());
+        setTrails(trailsData);
+        console.log("Fetched trails:", trailsData);
+      } catch (error) {
+        console.error("Error fetching trails:", error);
+      }
     };
 
     fetchTrails();
@@ -69,19 +73,24 @@ const LocationTracker = () => {
         setTracking(false);
         setStopped(true);
 
-        // Save trail to Firestore
         const startLocation = path[0];
         const stopLocation = path[path.length - 1];
-        await addDoc(collection(db, "trails"), {
-          start: startLocation,
-          stop: stopLocation,
-          path: path,
-          timestamp: new Date()
-        });
+
+        try {
+          await addDoc(collection(db, "trails"), {
+            start: startLocation,
+            stop: stopLocation,
+            path: path,
+            timestamp: new Date(),
+          });
+          console.log("Trail saved successfully");
+        } catch (error) {
+          console.error("Error saving trail:", error);
+        }
       }
     } else {
       setTracking(true);
-      setPath([]); // Clear the path when starting a new tracking session
+      setPath([]);
     }
   };
 
@@ -94,26 +103,38 @@ const LocationTracker = () => {
         {tracking ? "Stop" : "Start"}
       </button>
       {location && (
-        <MapContainer center={location} zoom={13} className="h-2/3 w-full">
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          />
-          {path.length > 0 && (
-            <>
-              <Marker position={path[0]}></Marker> {/* Start Marker */}
-              <Polyline positions={path} color="blue" />
-              {stopped && <Marker position={path[path.length - 1]}></Marker>} {/* End Marker only if stopped */}
-            </>
-          )}
-        </MapContainer>
+        <div className="w-full h-2/3">
+          <MapContainer center={location} zoom={13} className="h-full">
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+            {path.length > 0 && (
+              <>
+                <Marker position={[path[0].latitude, path[0].longitude]}></Marker>
+                <Polyline
+                  positions={path.map((pos) => [pos.latitude, pos.longitude])}
+                  color="blue"
+                />
+                {stopped && (
+                  <Marker
+                    position={[
+                      path[path.length - 1].latitude,
+                      path[path.length - 1].longitude,
+                    ]}
+                  ></Marker>
+                )}
+              </>
+            )}
+          </MapContainer>
+        </div>
       )}
       <div className="mt-4 w-full h-1/3 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {trails.map((trail, index) => (
           <div key={index} className="p-2 border rounded">
             <h3 className="font-bold">Trail {index + 1}</h3>
             <MapContainer
-              center={trail.start}
+              center={[trail.start.latitude, trail.start.longitude]}
               zoom={13}
               className="h-48 w-full"
             >
@@ -121,12 +142,15 @@ const LocationTracker = () => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               />
-              <Marker position={trail.start}></Marker>
-              <Polyline positions={trail.path} color="blue" />
-              <Marker position={trail.stop}></Marker>
+              <Marker position={[trail.start.latitude, trail.start.longitude]}></Marker>
+              <Polyline
+                positions={trail.path.map((pos) => [pos.latitude, pos.longitude])}
+                color="blue"
+              />
+              <Marker position={[trail.stop.latitude, trail.stop.longitude]}></Marker>
             </MapContainer>
-            <p>Start: {trail.start.join(", ")}</p>
-            <p>Stop: {trail.stop.join(", ")}</p>
+            <p>Start: {trail.start.latitude}, {trail.start.longitude}</p>
+            <p>Stop: {trail.stop.latitude}, {trail.stop.longitude}</p>
           </div>
         ))}
       </div>
