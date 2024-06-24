@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { db } from "./firebase";
+import { collection, addDoc, getDocs } from "firebase/firestore";
 
 // Fix leaflet's default icon issue with Webpack
 delete L.Icon.Default.prototype._getIconUrl;
@@ -19,6 +21,7 @@ const LocationTracker = () => {
   const [tracking, setTracking] = useState(false);
   const [path, setPath] = useState([]);
   const [stopped, setStopped] = useState(false);
+  const [trails, setTrails] = useState([]);
 
   const watchPosition = useCallback(() => {
     navigator.geolocation.watchPosition(
@@ -50,11 +53,30 @@ const LocationTracker = () => {
     }
   }, [tracking, watchPosition]);
 
-  const handleStartStop = () => {
+  useEffect(() => {
+    const fetchTrails = async () => {
+      const querySnapshot = await getDocs(collection(db, "trails"));
+      const trailsData = querySnapshot.docs.map((doc) => doc.data());
+      setTrails(trailsData);
+    };
+
+    fetchTrails();
+  }, []);
+
+  const handleStartStop = async () => {
     if (tracking) {
       if (window.confirm("Are you sure you want to stop tracking?")) {
         setTracking(false);
         setStopped(true);
+        
+        // Save trail to Firestore
+        const startLocation = path[0];
+        const stopLocation = path[path.length - 1];
+        await addDoc(collection(db, "trails"), {
+          start: startLocation,
+          stop: stopLocation,
+          path: path
+        });
       }
     } else {
       setTracking(true);
@@ -85,6 +107,15 @@ const LocationTracker = () => {
           )}
         </MapContainer>
       )}
+      <div className="mt-4 w-full h-1/3 overflow-y-auto">
+        {trails.map((trail, index) => (
+          <div key={index} className="mb-2 p-2 border rounded">
+            <h3 className="font-bold">Trail {index + 1}</h3>
+            <p>Start: {trail.start.join(", ")}</p>
+            <p>Stop: {trail.stop.join(", ")}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
