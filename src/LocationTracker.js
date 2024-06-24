@@ -4,17 +4,17 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { db } from "./firebase";
 import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
+import Modal from "react-modal";
 
 // Fix leaflet's default icon issue with Webpack
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
+
+Modal.setAppElement("#root"); // Set the root element for accessibility
 
 const LocationTracker = () => {
   const [location, setLocation] = useState(null);
@@ -24,6 +24,7 @@ const LocationTracker = () => {
   const [selectedTrail, setSelectedTrail] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [newTrailName, setNewTrailName] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchTrails = useCallback(async () => {
     try {
@@ -119,6 +120,7 @@ const LocationTracker = () => {
     setLocation([trail.start.latitude, trail.start.longitude]);
     setNewTrailName(trail.name);
     setIsEditing(false);
+    setIsModalOpen(true);
   };
 
   const handleDeleteTrail = async (trailId) => {
@@ -128,6 +130,7 @@ const LocationTracker = () => {
         console.log("Trail deleted successfully");
         fetchTrails();
         setSelectedTrail(null);
+        setIsModalOpen(false);
       } catch (error) {
         console.error("Error deleting trail:", error);
       }
@@ -143,6 +146,7 @@ const LocationTracker = () => {
         console.log("Trail updated successfully");
         fetchTrails();
         setIsEditing(false);
+        setIsModalOpen(false);
       } catch (error) {
         console.error("Error updating trail:", error);
       }
@@ -181,15 +185,6 @@ const LocationTracker = () => {
               onClick={() => handleTrailSelect(trail)}
             >
               {trail.name}
-              <button
-                className="ml-2 text-red-500"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteTrail(trail.id);
-                }}
-              >
-                Delete
-              </button>
             </li>
           ))}
         </ul>
@@ -213,37 +208,6 @@ const LocationTracker = () => {
                 color="blue"
               />
               <Marker position={[selectedTrail.stop.latitude, selectedTrail.stop.longitude]}></Marker>
-              <div className="absolute top-10 right-10 bg-white p-4 rounded shadow-lg">
-                {isEditing ? (
-                  <>
-                    <input
-                      type="text"
-                      value={newTrailName}
-                      onChange={(e) => setNewTrailName(e.target.value)}
-                      className="mb-2 p-2 border border-gray-300 rounded w-full"
-                    />
-                    <button
-                      onClick={handleEditTrail}
-                      className="px-4 py-2 bg-green-500 text-white rounded w-full"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={() => setIsEditing(false)}
-                      className="mt-2 px-4 py-2 bg-gray-500 text-white rounded w-full"
-                    >
-                      Cancel
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="px-4 py-2 bg-yellow-500 text-white rounded w-full"
-                  >
-                    Edit
-                  </button>
-                )}
-              </div>
             </>
           )}
           {tracking && path.length > 0 && (
@@ -258,6 +222,60 @@ const LocationTracker = () => {
           )}
         </MapContainer>
       </div>
+
+      {/* Modal for editing and deleting trail */}
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={() => setIsModalOpen(false)}
+        contentLabel="Edit or Delete Trail"
+        className="modal"
+        overlayClassName="modal-overlay"
+      >
+        <h2 className="font-bold mb-4">Edit or Delete Trail</h2>
+        {isEditing ? (
+          <>
+            <input
+              type="text"
+              value={newTrailName}
+              onChange={(e) => setNewTrailName(e.target.value)}
+              className="mb-2 p-2 border border-gray-300 rounded w-full"
+            />
+            <button
+              onClick={handleEditTrail}
+              className="px-4 py-2 bg-green-500 text-white rounded w-full"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => setIsEditing(false)}
+              className="mt-2 px-4 py-2 bg-gray-500 text-white rounded w-full"
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => setIsEditing(true)}
+              className="px-4 py-2 bg-yellow-500 text-white rounded w-full"
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => handleDeleteTrail(selectedTrail.id)}
+              className="mt-2 px-4 py-2 bg-red-500 text-white rounded w-full"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="mt-2 px-4 py-2 bg-gray-500 text-white rounded w-full"
+            >
+              Close
+            </button>
+          </>
+        )}
+      </Modal>
     </div>
   );
 };
