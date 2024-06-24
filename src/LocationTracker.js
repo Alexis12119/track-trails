@@ -1,3 +1,5 @@
+import React, { useState, useEffect, useCallback } from "react";
+import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { db } from "./firebase";
@@ -37,6 +39,7 @@ const LocationTracker = () => {
 
   useEffect(() => {
     let watchId;
+
     if (tracking) {
       watchId = navigator.geolocation.watchPosition(
         (position) => {
@@ -48,14 +51,12 @@ const LocationTracker = () => {
           console.error(error);
           if (error.code === 3) {
             setTimeout(() => {
-              if (tracking) watchPosition();
+              if (tracking) watchId = navigator.geolocation.watchPosition();
             }, 5000);
           }
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
-    } else if (watchId) {
-      navigator.geolocation.clearWatch(watchId);
     }
 
     return () => {
@@ -114,9 +115,7 @@ const LocationTracker = () => {
                   positions={path.map((pos) => [pos.latitude, pos.longitude])}
                   color="blue"
                 />
-                {tracking && (
-                  <Marker position={location}></Marker>
-                )}
+                {tracking && <Marker position={location}></Marker>}
               </>
             )}
           </MapContainer>
