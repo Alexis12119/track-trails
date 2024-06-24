@@ -182,7 +182,7 @@ const LocationTracker = () => {
 
   return (
     <div className="h-screen flex flex-col items-center justify-center">
-      <div className="flex-1 relative w-full">
+      <div className="flex-1 relative">
         <div className="relative w-full h-full flex items-center justify-center">
           <MapContainer
             center={location || [51.505, -0.09]}
@@ -195,8 +195,7 @@ const LocationTracker = () => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
             <MapUpdater location={location} />
-            
-            {selectedTrail && !tracking && (
+            {selectedTrail && (
               <>
                 <Marker position={[selectedTrail.start.latitude, selectedTrail.start.longitude]}></Marker>
                 <Polyline
@@ -206,7 +205,7 @@ const LocationTracker = () => {
                 <Marker position={[selectedTrail.stop.latitude, selectedTrail.stop.longitude]}></Marker>
               </>
             )}
-            
+
             {tracking && path.length > 0 && (
               <>
                 <Marker position={[path[0].latitude, path[0].longitude]}></Marker>
@@ -220,7 +219,7 @@ const LocationTracker = () => {
           </MapContainer>
         </div>
       </div>
-      <div className="p-4 bg-gray-100 w-full">
+      <div className="p-4">
         <button
           onClick={handleStartStop}
           className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
