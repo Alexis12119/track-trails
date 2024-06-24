@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { db } from "./firebase";
-import { collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { collection, addDoc, getDocs } from "firebase/firestore";
 
 // Fix leaflet's default icon issue with Webpack
 delete L.Icon.Default.prototype._getIconUrl;
@@ -22,7 +22,6 @@ const LocationTracker = () => {
   const [path, setPath] = useState([]);
   const [trails, setTrails] = useState([]);
   const [selectedTrail, setSelectedTrail] = useState(null);
-  const [dropdowns, setDropdowns] = useState({});
 
   const fetchTrails = useCallback(async () => {
     try {
@@ -118,30 +117,6 @@ const LocationTracker = () => {
     setLocation([trail.start.latitude, trail.start.longitude]);
   };
 
-  const handleDropdownToggle = (trailId) => {
-    setDropdowns((prevDropdowns) => ({
-      ...prevDropdowns,
-      [trailId]: !prevDropdowns[trailId],
-    }));
-  };
-
-  const handleEditTrail = (trail) => {
-    // Implement trail editing logic here
-    console.log("Edit trail:", trail);
-  };
-
-  const handleDeleteTrail = async (trailId) => {
-    if (window.confirm("Are you sure you want to delete this trail?")) {
-      try {
-        await deleteDoc(doc(db, "trails", trailId));
-        console.log("Trail deleted successfully");
-        fetchTrails();
-      } catch (error) {
-        console.error("Error deleting trail:", error);
-      }
-    }
-  };
-
   const MapUpdater = ({ location }) => {
     const map = useMap();
 
@@ -168,35 +143,10 @@ const LocationTracker = () => {
           {trails.map((trail) => (
             <li
               key={trail.id}
-              className="relative cursor-pointer hover:bg-gray-200 p-2 rounded flex justify-between items-center"
+              className="cursor-pointer hover:bg-gray-200 p-2 rounded"
               onClick={() => handleTrailSelect(trail)}
             >
               {trail.name}
-              <button
-                className="ml-2 px-2 py-1 bg-gray-300 rounded"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDropdownToggle(trail.id);
-                }}
-              >
-                ⋮
-              </button>
-              {dropdowns[trail.id] && (
-                <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-md z-10">
-                  <button
-                    className="block w-full px-4 py-2 text-left hover:bg-gray-200"
-                    onClick={() => handleEditTrail(trail)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="block w-full px-4 py-2 text-left hover:bg-gray-200"
-                    onClick={() => handleDeleteTrail(trail.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              )}
             </li>
           ))}
         </ul>
