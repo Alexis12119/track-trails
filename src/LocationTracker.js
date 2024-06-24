@@ -194,37 +194,40 @@ const LocationTracker = () => {
         </button>
       </div>
       <div className="flex-1 relative">
-        <MapContainer
-          center={location || [51.505, -0.09]}
-          zoom={13}
-          className="absolute inset-0"
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          />
-          <MapUpdater location={location} />
-          {selectedTrail && (
-            <>
-              <Marker position={[selectedTrail.start.latitude, selectedTrail.start.longitude]}></Marker>
-              <Polyline
-                positions={selectedTrail.path.map((pos) => [pos.latitude, pos.longitude])}
-                color="blue"
-              />
-              <Marker position={[selectedTrail.stop.latitude, selectedTrail.stop.longitude]}></Marker>
-            </>
-          )}
-          {tracking && path.length > 0 && (
-            <>
-              <Marker position={[path[0].latitude, path[0].longitude]}></Marker>
-              <Polyline
-                positions={path.map((pos) => [pos.latitude, pos.longitude])}
-                color="red"
-              />
-              <Marker position={location}></Marker>
-            </>
-          )}
-        </MapContainer>
+        <div className="relative w-full h-full flex items-center justify-center">
+          <MapContainer
+            center={location || [51.505, -0.09]}
+            zoom={13}
+            className="w-full h-full"
+            style={{ height: "calc(100% - 4rem)", width: "calc(100% - 4rem)" }}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+            <MapUpdater location={location} />
+            {selectedTrail && (
+              <>
+                <Marker position={[selectedTrail.start.latitude, selectedTrail.start.longitude]}></Marker>
+                <Polyline
+                  positions={selectedTrail.path.map((pos) => [pos.latitude, pos.longitude])}
+                  color="blue"
+                />
+                <Marker position={[selectedTrail.stop.latitude, selectedTrail.stop.longitude]}></Marker>
+              </>
+            )}
+            {tracking && path.length > 0 && (
+              <>
+                <Marker position={[path[0].latitude, path[0].longitude]}></Marker>
+                <Polyline
+                  positions={path.map((pos) => [pos.latitude, pos.longitude])}
+                  color="red"
+                />
+                <Marker position={location}></Marker>
+              </>
+            )}
+          </MapContainer>
+        </div>
       </div>
       <div className="w-full h-1/4 p-4 bg-gray-100 overflow-auto">
         <h2 className="font-bold mb-4">Previous Trails</h2>
@@ -248,7 +251,7 @@ const LocationTracker = () => {
                   </button>
                   <button
                     type="button"
-                    className="ml-2 px-2 py-1 bg-gray-300 rounded"
+                    className="ml-2 px-2 py-1 bg-gray-300 rounded cancel-button"
                     onClick={() => setEditingTrail(null)}
                   >
                     Cancel
