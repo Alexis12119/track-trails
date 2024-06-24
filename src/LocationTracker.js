@@ -18,18 +18,13 @@ const LocationTracker = () => {
   const [location, setLocation] = useState(null);
   const [tracking, setTracking] = useState(false);
   const [path, setPath] = useState([]);
+  const [currentLocation, setCurrentLocation] = useState(null);
 
   const watchPosition = useCallback(() => {
     navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        setLocation([latitude, longitude]);
-        setPath((prevPath) => {
-          if (prevPath.length === 0) {
-            return [[latitude, longitude]];
-          }
-          return [...prevPath, [latitude, longitude]];
-        });
+        setCurrentLocation([latitude, longitude]);
       },
       (error) => {
         console.error(error);
@@ -48,13 +43,23 @@ const LocationTracker = () => {
     }
   }, [tracking, watchPosition]);
 
+  useEffect(() => {
+    if (currentLocation && tracking) {
+      setLocation(currentLocation);
+    }
+  }, [currentLocation, tracking]);
+
   const handleStartStop = () => {
     if (tracking) {
       if (window.confirm("Are you sure you want to stop tracking?")) {
         setTracking(false);
+        if (currentLocation) {
+          setPath((prevPath) => [...prevPath, currentLocation]);
+        }
       }
     } else {
       setTracking(true);
+      setPath([]);
     }
   };
 
