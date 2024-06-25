@@ -1,9 +1,22 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Polyline,
+  useMap,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { db } from "./firebase";
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
 
 // Fix leaflet's default icon issue with Webpack
 delete L.Icon.Default.prototype._getIconUrl;
@@ -29,7 +42,10 @@ const LocationTracker = () => {
   const fetchTrails = useCallback(async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "trails"));
-      const trailsData = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const trailsData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
       setTrails(trailsData);
       console.log("Fetched trails:", trailsData);
     } catch (error) {
@@ -59,7 +75,7 @@ const LocationTracker = () => {
             }, 5000);
           }
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
       );
     }
 
@@ -84,15 +100,27 @@ const LocationTracker = () => {
         const stopLocation = path[path.length - 1];
 
         try {
-          await addDoc(collection(db, "trails"), {
-            name: `Trail ${trails.length + 1}`,
-            start: startLocation,
-            stop: stopLocation,
-            path: path,
-            timestamp: new Date(),
-          });
-          console.log("Trail saved successfully");
+          if (selectedTrail) {
+            // Update existing trail
+            await updateDoc(doc(db, "trails", selectedTrail.id), {
+              path: [...selectedTrail.path, ...path],
+              stop: stopLocation,
+              timestamp: new Date(),
+            });
+            console.log("Trail updated successfully");
+          } else {
+            // Create new trail
+            await addDoc(collection(db, "trails"), {
+              name: `Trail ${trails.length + 1}`,
+              start: startLocation,
+              stop: stopLocation,
+              path: path,
+              timestamp: new Date(),
+            });
+            console.log("Trail saved successfully");
+          }
           fetchTrails();
+          setSelectedTrail(null); // Reset selected trail after saving
         } catch (error) {
           console.error("Error saving trail:", error);
         }
@@ -100,18 +128,25 @@ const LocationTracker = () => {
     } else {
       setTracking(true);
       setPath([]);
-      // Initialize location to the current position when starting tracking
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setLocation([latitude, longitude]);
-          setPath([{ latitude, longitude }]);
-        },
-        (error) => {
-          console.error(error);
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      );
+      if (selectedTrail) {
+        // Continue from the last point of the selected trail
+        const lastLocation = selectedTrail.path[selectedTrail.path.length - 1];
+        setLocation([lastLocation.latitude, lastLocation.longitude]);
+        setPath([lastLocation]);
+      } else {
+        // Start from the current position
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            setLocation([latitude, longitude]);
+            setPath([{ latitude, longitude }]);
+          },
+          (error) => {
+            console.error(error);
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+        );
+      }
     }
   };
 
@@ -121,7 +156,9 @@ const LocationTracker = () => {
   };
 
   const handleDropdownToggle = (trailId) => {
-    setOpenDropdownId((prevDropdownId) => (prevDropdownId === trailId ? null : trailId));
+    setOpenDropdownId((prevDropdownId) =>
+      prevDropdownId === trailId ? null : trailId,
+    );
   };
 
   const handleEditTrail = (trail) => {
@@ -149,7 +186,9 @@ const LocationTracker = () => {
       return;
     }
 
-    const isUnique = trails.every((trail) => trail.name !== newTrailName.trim());
+    const isUnique = trails.every(
+      (trail) => trail.name !== newTrailName.trim(),
+    );
     if (!isUnique) {
       alert("Trail name must be unique.");
       return;
@@ -187,7 +226,7 @@ const LocationTracker = () => {
           onClick={handleStartStop}
           className="mb-4 px-4 py-2 bg-blue-500 text-white rounded w-full"
         >
-          {tracking ? "Stop" : "Start"}
+          {tracking ? "Stop" : selectedTrail ? "Continue" : "Start"}
         </button>
       </div>
       <div className="flex-1 relative">
@@ -203,21 +242,36 @@ const LocationTracker = () => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
             <MapUpdater location={location} />
-            
+
             {selectedTrail && !tracking && (
               <>
-                <Marker position={[selectedTrail.start.latitude, selectedTrail.start.longitude]}></Marker>
+                <Marker
+                  position={[
+                    selectedTrail.start.latitude,
+                    selectedTrail.start.longitude,
+                  ]}
+                ></Marker>
                 <Polyline
-                  positions={selectedTrail.path.map((pos) => [pos.latitude, pos.longitude])}
+                  positions={selectedTrail.path.map((pos) => [
+                    pos.latitude,
+                    pos.longitude,
+                  ])}
                   color="blue"
                 />
-                <Marker position={[selectedTrail.stop.latitude, selectedTrail.stop.longitude]}></Marker>
+                <Marker
+                  position={[
+                    selectedTrail.stop.latitude,
+                    selectedTrail.stop.longitude,
+                  ]}
+                ></Marker>
               </>
             )}
-            
+
             {tracking && path.length > 0 && (
               <>
-                <Marker position={[path[0].latitude, path[0].longitude]}></Marker>
+                <Marker
+                  position={[path[0].latitude, path[0].longitude]}
+                ></Marker>
                 <Polyline
                   positions={path.map((pos) => [pos.latitude, pos.longitude])}
                   color="red"
@@ -238,14 +292,20 @@ const LocationTracker = () => {
               onClick={() => handleTrailSelect(trail)}
             >
               {trail.id === editingTrail?.id ? (
-                <form onSubmit={handleEditSubmit} className="flex items-center w-full">
+                <form
+                  onSubmit={handleEditSubmit}
+                  className="flex items-center w-full"
+                >
                   <input
                     type="text"
                     value={newTrailName}
                     onChange={(e) => setNewTrailName(e.target.value)}
                     className="p-1 border rounded flex-grow"
                   />
-                  <button type="submit" className="ml-2 px-2 py-1 bg-blue-500 text-white rounded">
+                  <button
+                    type="submit"
+                    className="ml-2 px-2 py-1 bg-blue-500 text-white rounded"
+                  >
                     Save
                   </button>
                   <button
