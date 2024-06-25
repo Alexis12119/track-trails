@@ -58,9 +58,9 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
       return a.name.localeCompare(b.name);
     } else if (sortOrder === "alphabetical-desc") {
       return b.name.localeCompare(a.name);
-    } else if (sortOrder === "recent") {
+    } else if (sortOrder === "new") {
       return new Date(b.timestamp) - new Date(a.timestamp);
-    } else if (sortOrder === "latest") {
+    } else if (sortOrder === "old") {
       return new Date(a.timestamp) - new Date(b.timestamp);
     }
     return 0;
@@ -77,8 +77,8 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
         >
           <option value="alphabetical-asc">Sort A-Z</option>
           <option value="alphabetical-desc">Sort Z-A</option>
-          <option value="recent">Sort by Recent</option>
-          <option value="latest">Sort by Latest</option>
+          <option value="new">Sort by New</option>
+          <option value="old">Sort by Old</option>
         </select>
       </div>
       <ul>
