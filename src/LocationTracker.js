@@ -35,11 +35,18 @@ const LocationTracker = () => {
   const fetchTrails = useCallback(async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "trails"));
-      const trailsData = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        timestamp: doc.data().timestamp.toDate(),
-      }));
+      const trailsData = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        const timestamp =
+          data.timestamp && data.timestamp.toDate
+            ? data.timestamp.toDate()
+            : null;
+        return {
+          id: doc.id,
+          ...data,
+          timestamp: timestamp,
+        };
+      });
       setTrails(trailsData);
       console.log("Fetched trails:", trailsData);
     } catch (error) {
@@ -150,10 +157,7 @@ const LocationTracker = () => {
 
   const handleTrailSelect = (trail) => {
     setSelectedTrail(trail);
-    setLocation([
-      trail.start.latitude,
-      trail.start.longitude,
-    ]);
+    setLocation([trail.start.latitude, trail.start.longitude]);
   };
 
   const MapUpdater = ({ location }) => {
@@ -203,7 +207,10 @@ const LocationTracker = () => {
                   center={location}
                   zoom={13}
                   className="w-full h-full"
-                  style={{ height: "calc(100% - 4rem)", width: "calc(100% - 4rem)" }}
+                  style={{
+                    height: "calc(100% - 4rem)",
+                    width: "calc(100% - 4rem)",
+                  }}
                 >
                   <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -241,7 +248,10 @@ const LocationTracker = () => {
                         position={[path[0].latitude, path[0].longitude]}
                       ></Marker>
                       <Polyline
-                        positions={path.map((pos) => [pos.latitude, pos.longitude])}
+                        positions={path.map((pos) => [
+                          pos.latitude,
+                          pos.longitude,
+                        ])}
                         color="red"
                       />
                       <Marker position={location}></Marker>
@@ -261,7 +271,11 @@ const LocationTracker = () => {
           </div>
         </>
       ) : (
-        <PreviousTrails trails={trails} fetchTrails={fetchTrails} handleTrailSelect={handleTrailSelect} />
+        <PreviousTrails
+          trails={trails}
+          fetchTrails={fetchTrails}
+          handleTrailSelect={handleTrailSelect}
+        />
       )}
     </div>
   );
