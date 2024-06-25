@@ -100,27 +100,15 @@ const LocationTracker = () => {
         const stopLocation = path[path.length - 1];
 
         try {
-          if (selectedTrail) {
-            // Update existing trail
-            await updateDoc(doc(db, "trails", selectedTrail.id), {
-              path: [...selectedTrail.path, ...path],
-              stop: stopLocation,
-              timestamp: new Date(),
-            });
-            console.log("Trail updated successfully");
-          } else {
-            // Create new trail
-            await addDoc(collection(db, "trails"), {
-              name: `Trail ${trails.length + 1}`,
-              start: startLocation,
-              stop: stopLocation,
-              path: path,
-              timestamp: new Date(),
-            });
-            console.log("Trail saved successfully");
-          }
+          await addDoc(collection(db, "trails"), {
+            name: `Trail ${trails.length + 1}`,
+            start: startLocation,
+            stop: stopLocation,
+            path: path,
+            timestamp: new Date(),
+          });
+          console.log("Trail saved successfully");
           fetchTrails();
-          setSelectedTrail(null); // Reset selected trail after saving
         } catch (error) {
           console.error("Error saving trail:", error);
         }
@@ -128,25 +116,18 @@ const LocationTracker = () => {
     } else {
       setTracking(true);
       setPath([]);
-      if (selectedTrail) {
-        // Continue from the last point of the selected trail
-        const lastLocation = selectedTrail.path[selectedTrail.path.length - 1];
-        setLocation([lastLocation.latitude, lastLocation.longitude]);
-        setPath([lastLocation]);
-      } else {
-        // Start from the current position
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            setLocation([latitude, longitude]);
-            setPath([{ latitude, longitude }]);
-          },
-          (error) => {
-            console.error(error);
-          },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
-        );
-      }
+      // Initialize location to the current position when starting tracking
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocation([latitude, longitude]);
+          setPath([{ latitude, longitude }]);
+        },
+        (error) => {
+          console.error(error);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+      );
     }
   };
 
@@ -226,7 +207,7 @@ const LocationTracker = () => {
           onClick={handleStartStop}
           className="mb-4 px-4 py-2 bg-blue-500 text-white rounded w-full"
         >
-          {tracking ? "Stop" : selectedTrail ? "Continue" : "Start"}
+          {tracking ? "Stop" : "Start"}
         </button>
       </div>
       <div className="flex-1 relative">
