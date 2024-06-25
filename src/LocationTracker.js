@@ -32,13 +32,13 @@ const LocationTracker = () => {
   const [view, setView] = useState("current");
   const [loading, setLoading] = useState(true);
 
-  // Fetch trails from the Firestore database
   const fetchTrails = useCallback(async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "trails"));
       const trailsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
+        timestamp: doc.data().timestamp.toDate(),
       }));
       setTrails(trailsData);
       console.log("Fetched trails:", trailsData);
@@ -47,12 +47,10 @@ const LocationTracker = () => {
     }
   }, []);
 
-  // Fetch trails when component mounts
   useEffect(() => {
     fetchTrails();
   }, [fetchTrails]);
 
-  // Get the initial location when component mounts
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -68,7 +66,6 @@ const LocationTracker = () => {
     );
   }, []);
 
-  // Track the user's location
   useEffect(() => {
     let watchId;
 
@@ -98,7 +95,6 @@ const LocationTracker = () => {
     };
   }, [tracking]);
 
-  // Handle start/stop tracking
   const handleStartStop = async () => {
     if (tracking) {
       if (window.confirm("Are you sure you want to stop tracking?")) {
@@ -115,9 +111,18 @@ const LocationTracker = () => {
         try {
           await addDoc(collection(db, "trails"), {
             name: `Trail ${trails.length + 1}`,
-            start: startLocation,
-            stop: stopLocation,
-            path: path,
+            start: {
+              latitude: startLocation.latitude,
+              longitude: startLocation.longitude,
+            },
+            stop: {
+              latitude: stopLocation.latitude,
+              longitude: stopLocation.longitude,
+            },
+            path: path.map((pos) => ({
+              latitude: pos.latitude,
+              longitude: pos.longitude,
+            })),
             timestamp: new Date(),
           });
           console.log("Trail saved successfully");
@@ -143,13 +148,11 @@ const LocationTracker = () => {
     }
   };
 
-  // Handle trail selection from previous trails
   const handleTrailSelect = (trail) => {
     setSelectedTrail(trail);
     setLocation([trail.start.latitude, trail.start.longitude]);
   };
 
-  // Component to update the map view to the current location
   const MapUpdater = ({ location }) => {
     const map = useMap();
 
@@ -167,13 +170,21 @@ const LocationTracker = () => {
       <div className="p-4 bg-gray-100 flex justify-between">
         <button
           onClick={() => setView("current")}
-          className={`mb-4 px-4 py-2 rounded w-full ${view === "current" ? "bg-blue-500 text-white" : "bg-gray-200 text-black"}`}
+          className={`mb-4 px-4 py-2 rounded w-full ${
+            view === "current"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-200 text-black"
+          }`}
         >
           Current Trail
         </button>
         <button
           onClick={() => setView("previous")}
-          className={`mb-4 px-4 py-2 rounded w-full ${view === "previous" ? "bg-blue-500 text-white" : "bg-gray-200 text-black"}`}
+          className={`mb-4 px-4 py-2 rounded w-full ${
+            view === "previous"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-200 text-black"
+          }`}
         >
           Previous Trails
         </button>
@@ -189,7 +200,10 @@ const LocationTracker = () => {
                   center={location}
                   zoom={13}
                   className="w-full h-full"
-                  style={{ height: "calc(100% - 4rem)", width: "calc(100% - 4rem)" }}
+                  style={{
+                    height: "calc(100% - 4rem)",
+                    width: "calc(100% - 4rem)",
+                  }}
                 >
                   <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -227,7 +241,10 @@ const LocationTracker = () => {
                         position={[path[0].latitude, path[0].longitude]}
                       ></Marker>
                       <Polyline
-                        positions={path.map((pos) => [pos.latitude, pos.longitude])}
+                        positions={path.map((pos) => [
+                          pos.latitude,
+                          pos.longitude,
+                        ])}
                         color="red"
                       />
                       <Marker position={location}></Marker>
@@ -247,7 +264,11 @@ const LocationTracker = () => {
           </div>
         </>
       ) : (
-        <PreviousTrails trails={trails} fetchTrails={fetchTrails} handleTrailSelect={handleTrailSelect} />
+        <PreviousTrails
+          trails={trails}
+          fetchTrails={fetchTrails}
+          handleTrailSelect={handleTrailSelect}
+        />
       )}
     </div>
   );
