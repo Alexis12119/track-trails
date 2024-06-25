@@ -59,7 +59,7 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
     } else if (sortOrder === "alphabetical-desc") {
       return b.name.localeCompare(a.name);
     } else if (sortOrder === "date") {
-      return new Date(b.timestamp) - new Date(a.timestamp);
+      return new Date(b.date) - new Date(a.date); // Assuming `a.date` and `b.date` are valid date strings
     }
     return 0;
   });
@@ -69,7 +69,7 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
       <h2 className="font-bold mb-4">Previous Trails</h2>
       <div className="sticky top-0 bg-gray-100 z-10">
         <select
-          className="mb-4 p-2 rounded border w-full"
+          className="mb-4 p-2 rounded border"
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
         >
@@ -115,7 +115,7 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
                 </form>
               ) : (
                 <>
-                  <span>{trail.name} <small>({new Date(trail.timestamp?.seconds * 1000).toLocaleDateString()})</small></span>
+                  <span>{trail.name} <small>({new Date(trail.date).toLocaleDateString()})</small></span>
                   <div className="flex">
                     <button
                       className="ml-2 px-2 py-1 bg-green-500 text-white rounded"
