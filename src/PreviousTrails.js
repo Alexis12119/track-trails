@@ -121,7 +121,7 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
                   <span>{trail.name} <small>({new Date(trail.timestamp).toLocaleDateString()})</small></span>
                   <div className="flex">
                     <button
-                      className="ml-2 px-2 py-1 bg-green-500 text-white rounded"
+                      className="ml-2 px-2 py-1 bg-blue-500 text-white rounded"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleEditTrail(trail);
