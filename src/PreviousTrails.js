@@ -115,7 +115,7 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
                 </form>
               ) : (
                 <>
-                  <span>{trail.name} <small>({new Date(trail.timestamp?.seconds * 1000).toLocaleDateString()})</small></span>
+                  <span>{trail.name} <small>({new Date(trail.timestamp).toLocaleDateString()})</small></span>
                   <div className="flex">
                     <button
                       className="ml-2 px-2 py-1 bg-green-500 text-white rounded"
