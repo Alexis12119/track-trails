@@ -67,9 +67,9 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
   });
 
   return (
-    <div className="w-full h-full p-4 bg-gray-100 overflow-auto">
+    <div className="w-full h-full p-4 bg-gray-100 overflow-auto relative">
       <h2 className="font-bold mb-4">Previous Trails</h2>
-      <div className="fixed w-full bg-gray-100 z-10 p-4">
+      <div className="fixed w-full bg-gray-100 z-20 p-4">
         <select
           className="mb-4 p-2 rounded border w-full"
           value={sortOrder}
@@ -81,7 +81,7 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
           <option value="old">Sort by Oldest</option>
         </select>
       </div>
-      <div className="mt-20">
+      <div className="pt-24"> {/* Added padding to ensure content is not overlapped */}
         <ul>
           {sortedTrails.map((trail) => (
             <li
