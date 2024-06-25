@@ -69,7 +69,7 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
   return (
     <div className="w-full h-full p-4 bg-gray-100 overflow-auto">
       <h2 className="font-bold mb-4">Previous Trails</h2>
-      <div className="sticky top-0 bg-gray-100 z-10">
+      <div className="top-0 bg-gray-100 z-10">
         <select
           className="mb-4 p-2 rounded border w-full"
           value={sortOrder}
