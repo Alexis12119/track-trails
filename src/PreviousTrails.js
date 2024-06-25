@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from './firebase';
+import TrailMap from './TrailMap';
 
 const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
   const [editingTrail, setEditingTrail] = useState(null);
@@ -66,64 +67,69 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
         {trails.map((trail) => (
           <li
             key={trail.id}
-            className="relative cursor-pointer hover:bg-gray-200 p-2 rounded flex justify-between items-center"
-            onClick={() => handleTrailSelect(trail)}
+            className="relative mb-4"
           >
-            {trail.id === editingTrail?.id ? (
-              <form
-                onSubmit={handleEditSubmit}
-                className="flex items-center w-full"
-              >
-                <input
-                  type="text"
-                  value={newTrailName}
-                  onChange={(e) => setNewTrailName(e.target.value)}
-                  className="p-1 border rounded flex-grow"
-                />
-                <button
-                  type="submit"
-                  className="ml-2 px-2 py-1 bg-blue-500 text-white rounded"
+            <div
+              className="cursor-pointer hover:bg-gray-200 p-2 rounded flex justify-between items-center"
+              onClick={() => handleTrailSelect(trail)}
+            >
+              {trail.id === editingTrail?.id ? (
+                <form
+                  onSubmit={handleEditSubmit}
+                  className="flex items-center w-full"
                 >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  className="ml-2 px-2 py-1 bg-gray-300 rounded cancel-button"
-                  onClick={() => setEditingTrail(null)}
-                >
-                  Cancel
-                </button>
-              </form>
-            ) : (
-              <>
-                <span>{trail.name}</span>
-                <button
-                  className="ml-2 px-2 py-1 bg-gray-300 rounded"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDropdownToggle(trail.id);
-                  }}
-                >
-                  ⋮
-                </button>
-                {openDropdownId === trail.id && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-md z-10">
-                    <button
-                      className="block w-full px-4 py-2 text-left hover:bg-gray-200"
-                      onClick={() => handleEditTrail(trail)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="block w-full px-4 py-2 text-left hover:bg-gray-200"
-                      onClick={() => handleDeleteTrail(trail.id)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
+                  <input
+                    type="text"
+                    value={newTrailName}
+                    onChange={(e) => setNewTrailName(e.target.value)}
+                    className="p-1 border rounded flex-grow"
+                  />
+                  <button
+                    type="submit"
+                    className="ml-2 px-2 py-1 bg-blue-500 text-white rounded"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    className="ml-2 px-2 py-1 bg-gray-300 rounded cancel-button"
+                    onClick={() => setEditingTrail(null)}
+                  >
+                    Cancel
+                  </button>
+                </form>
+              ) : (
+                <>
+                  <span>{trail.name}</span>
+                  <button
+                    className="ml-2 px-2 py-1 bg-gray-300 rounded"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDropdownToggle(trail.id);
+                    }}
+                  >
+                    ⋮
+                  </button>
+                  {openDropdownId === trail.id && (
+                    <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-md z-10">
+                      <button
+                        className="block w-full px-4 py-2 text-left hover:bg-gray-200"
+                        onClick={() => handleEditTrail(trail)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="block w-full px-4 py-2 text-left hover:bg-gray-200"
+                        onClick={() => handleDeleteTrail(trail.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            <TrailMap trail={trail} />
           </li>
         ))}
       </ul>

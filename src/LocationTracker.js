@@ -130,7 +130,6 @@ const LocationTracker = () => {
   const handleTrailSelect = (trail) => {
     setSelectedTrail(trail);
     setLocation([trail.start.latitude, trail.start.longitude]);
-    setView("current");
   };
 
   const MapUpdater = ({ location }) => {
