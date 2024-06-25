@@ -33,7 +33,7 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
     }
 
     const isUnique = trails.every(
-      (trail) => trail.name !== newTrailName.trim(),
+      (trail) => trail.name !== newTrailName.trim()
     );
     if (!isUnique) {
       alert("Trail name must be unique.");
@@ -69,7 +69,7 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
   return (
     <div className="w-full h-full p-4 bg-gray-100 overflow-auto">
       <h2 className="font-bold mb-4">Previous Trails</h2>
-      <div className="top-0 bg-gray-100 z-10">
+      <div className="fixed w-full bg-gray-100 z-10 p-4">
         <select
           className="mb-4 p-2 rounded border w-full"
           value={sortOrder}
@@ -81,73 +81,75 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
           <option value="old">Sort by Oldest</option>
         </select>
       </div>
-      <ul>
-        {sortedTrails.map((trail) => (
-          <li
-            key={trail.id}
-            className="relative mb-4 p-2 rounded bg-white shadow-lg"
-          >
-            <div
-              className="cursor-pointer hover:bg-gray-200 p-2 rounded flex justify-between items-center"
-              onClick={() => handleTrailSelect(trail)}
+      <div className="mt-20">
+        <ul>
+          {sortedTrails.map((trail) => (
+            <li
+              key={trail.id}
+              className="relative mb-4 p-2 rounded bg-white shadow-lg"
             >
-              {trail.id === editingTrail?.id ? (
-                <form
-                  onSubmit={handleEditSubmit}
-                  className="flex items-center w-full"
-                >
-                  <input
-                    type="text"
-                    value={newTrailName}
-                    onChange={(e) => setNewTrailName(e.target.value)}
-                    className="p-1 border rounded flex-grow"
-                  />
-                  <button
-                    type="submit"
-                    className="ml-2 px-2 py-1 bg-blue-500 text-white rounded"
+              <div
+                className="cursor-pointer hover:bg-gray-200 p-2 rounded flex justify-between items-center"
+                onClick={() => handleTrailSelect(trail)}
+              >
+                {trail.id === editingTrail?.id ? (
+                  <form
+                    onSubmit={handleEditSubmit}
+                    className="flex items-center w-full"
                   >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    className="ml-2 px-2 py-1 bg-gray-300 rounded cancel-button"
-                    onClick={() => setEditingTrail(null)}
-                  >
-                    Cancel
-                  </button>
-                </form>
-              ) : (
-                <>
-                  <span>{trail.name} <small>({new Date(trail.timestamp).toLocaleString()})</small></span>
-                  <div className="flex">
+                    <input
+                      type="text"
+                      value={newTrailName}
+                      onChange={(e) => setNewTrailName(e.target.value)}
+                      className="p-1 border rounded flex-grow"
+                    />
                     <button
+                      type="submit"
                       className="ml-2 px-2 py-1 bg-blue-500 text-white rounded"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditTrail(trail);
-                      }}
                     >
-                      Edit
+                      Save
                     </button>
                     <button
-                      className="ml-2 px-2 py-1 bg-red-500 text-white rounded"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteTrail(trail.id);
-                      }}
+                      type="button"
+                      className="ml-2 px-2 py-1 bg-gray-300 rounded cancel-button"
+                      onClick={() => setEditingTrail(null)}
                     >
-                      Delete
+                      Cancel
                     </button>
-                  </div>
-                </>
-              )}
-            </div>
-            <div className="p-2">
-              <TrailMap trail={trail} />
-            </div>
-          </li>
-        ))}
-      </ul>
+                  </form>
+                ) : (
+                  <>
+                    <span>{trail.name} <small>({new Date(trail.timestamp).toLocaleString()})</small></span>
+                    <div className="flex">
+                      <button
+                        className="ml-2 px-2 py-1 bg-blue-500 text-white rounded"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditTrail(trail);
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="ml-2 px-2 py-1 bg-red-500 text-white rounded"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteTrail(trail.id);
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="p-2">
+                <TrailMap trail={trail} />
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 };
