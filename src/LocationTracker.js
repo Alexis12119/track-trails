@@ -237,10 +237,10 @@ const LocationTracker = () => {
               )}
             </div>
           </div>
-          <div className="p-4 bg-gray-100">
+          <div className="p-4 bg-gray-100 flex justify-center items-center">
             <button
               onClick={handleStartStop}
-              className="mb-4 px-4 py-2 bg-blue-500 text-white rounded w-full"
+              className="mb-4 px-4 py-2 bg-blue-500 text-white rounded w-full max-w-xs"
             >
               {tracking ? "Stop" : "Start"}
             </button>
