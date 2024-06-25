@@ -6,12 +6,10 @@ import TrailMap from './TrailMap';
 const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
   const [editingTrail, setEditingTrail] = useState(null);
   const [newTrailName, setNewTrailName] = useState("");
-  const [openDropdownId, setOpenDropdownId] = useState(null);
 
   const handleEditTrail = (trail) => {
     setEditingTrail(trail);
     setNewTrailName(trail.name);
-    setOpenDropdownId(null);
   };
 
   const handleDeleteTrail = async (trailId) => {
@@ -52,12 +50,6 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
     } catch (error) {
       console.error("Error updating trail:", error);
     }
-  };
-
-  const handleDropdownToggle = (trailId) => {
-    setOpenDropdownId((prevDropdownId) =>
-      prevDropdownId === trailId ? null : trailId,
-    );
   };
 
   return (
@@ -101,31 +93,26 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
               ) : (
                 <>
                   <span>{trail.name}</span>
-                  <button
-                    className="ml-2 px-2 py-1 bg-gray-300 rounded"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDropdownToggle(trail.id);
-                    }}
-                  >
-                    ⋮
-                  </button>
-                  {openDropdownId === trail.id && (
-                    <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-md z-50">
-                      <button
-                        className="block w-full px-4 py-2 text-left hover:bg-gray-200"
-                        onClick={() => handleEditTrail(trail)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="block w-full px-4 py-2 text-left hover:bg-gray-200"
-                        onClick={() => handleDeleteTrail(trail.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex">
+                    <button
+                      className="ml-2 px-2 py-1 bg-yellow-500 text-white rounded"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditTrail(trail);
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="ml-2 px-2 py-1 bg-red-500 text-white rounded"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteTrail(trail.id);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </>
               )}
             </div>
