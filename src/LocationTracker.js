@@ -247,6 +247,11 @@ const LocationTracker = () => {
                       <Marker position={location}></Marker>
                     </>
                   )}
+
+                  {/* Always show the current location marker */}
+                  {location && (
+                    <Marker position={location}></Marker>
+                  )}
                 </MapContainer>
               )}
             </div>
