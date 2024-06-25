@@ -19,7 +19,8 @@ const TrailMap = ({ trail }) => {
     <MapContainer
       center={[trail.start.latitude, trail.start.longitude]}
       zoom={13}
-      className="w-full h-64 mb-4"
+      className="w-full h-64 mb-4 rounded border"
+      style={{ height: "300px" }} // Ensure a square aspect ratio
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

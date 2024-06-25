@@ -59,7 +59,7 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
         {trails.map((trail) => (
           <li
             key={trail.id}
-            className="relative mb-4"
+            className="relative mb-4 p-2 rounded bg-white shadow-lg"
           >
             <div
               className="cursor-pointer hover:bg-gray-200 p-2 rounded flex justify-between items-center"
@@ -116,7 +116,9 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
                 </>
               )}
             </div>
-            <TrailMap trail={trail} />
+            <div className="p-2">
+              <TrailMap trail={trail} />
+            </div>
           </li>
         ))}
       </ul>
