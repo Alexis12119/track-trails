@@ -80,7 +80,7 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
           <option value="old">Sort by Oldest</option>
         </select>
       </div>
-      <ul className="flex-1">
+      <ul className="flex-1 overflow-auto">
         {sortedTrails.map((trail) => (
           <li
             key={trail.id}
