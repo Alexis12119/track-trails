@@ -77,8 +77,8 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
         >
           <option value="alphabetical-asc">Sort A-Z</option>
           <option value="alphabetical-desc">Sort Z-A</option>
-          <option value="new">Sort by New</option>
-          <option value="old">Sort by Old</option>
+          <option value="new">Sort by Newest</option>
+          <option value="old">Sort by Oldest</option>
         </select>
       </div>
       <ul>
