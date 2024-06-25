@@ -30,6 +30,7 @@ const LocationTracker = () => {
   const [trails, setTrails] = useState([]);
   const [selectedTrail, setSelectedTrail] = useState(null);
   const [view, setView] = useState("current");
+  const [loading, setLoading] = useState(true);
 
   // Fetch trails from the Firestore database
   const fetchTrails = useCallback(async () => {
@@ -50,6 +51,22 @@ const LocationTracker = () => {
   useEffect(() => {
     fetchTrails();
   }, [fetchTrails]);
+
+  // Get the initial location when component mounts
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setLocation([latitude, longitude]);
+        setLoading(false);
+      },
+      (error) => {
+        console.error(error);
+        setLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
+  }, []);
 
   // Track the user's location
   useEffect(() => {
@@ -165,7 +182,9 @@ const LocationTracker = () => {
         <>
           <div className="flex-1 relative">
             <div className="relative w-full h-full flex items-center justify-center">
-              {location ? (
+              {loading ? (
+                <p>Loading current location...</p>
+              ) : (
                 <MapContainer
                   center={location}
                   zoom={13}
@@ -215,8 +234,6 @@ const LocationTracker = () => {
                     </>
                   )}
                 </MapContainer>
-              ) : (
-                <p>Loading current location...</p>
               )}
             </div>
           </div>
