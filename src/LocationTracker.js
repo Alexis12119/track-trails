@@ -9,11 +9,7 @@ import {
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { db } from "./firebase";
-import {
-  collection,
-  addDoc,
-  getDocs,
-} from "firebase/firestore";
+import { collection, addDoc, getDocs } from "firebase/firestore";
 import PreviousTrails from "./PreviousTrails";
 
 // Fix leaflet's default icon issue with Webpack
@@ -35,6 +31,7 @@ const LocationTracker = () => {
   const [selectedTrail, setSelectedTrail] = useState(null);
   const [view, setView] = useState("current");
 
+  // Fetch trails from the Firestore database
   const fetchTrails = useCallback(async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "trails"));
@@ -49,10 +46,12 @@ const LocationTracker = () => {
     }
   }, []);
 
+  // Fetch trails when component mounts
   useEffect(() => {
     fetchTrails();
   }, [fetchTrails]);
 
+  // Track the user's location
   useEffect(() => {
     let watchId;
 
@@ -82,6 +81,7 @@ const LocationTracker = () => {
     };
   }, [tracking]);
 
+  // Handle start/stop tracking
   const handleStartStop = async () => {
     if (tracking) {
       if (window.confirm("Are you sure you want to stop tracking?")) {
@@ -112,7 +112,6 @@ const LocationTracker = () => {
     } else {
       setTracking(true);
       setPath([]);
-      // Initialize location to the current position when starting tracking
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
@@ -127,11 +126,13 @@ const LocationTracker = () => {
     }
   };
 
+  // Handle trail selection from previous trails
   const handleTrailSelect = (trail) => {
     setSelectedTrail(trail);
     setLocation([trail.start.latitude, trail.start.longitude]);
   };
 
+  // Component to update the map view to the current location
   const MapUpdater = ({ location }) => {
     const map = useMap();
 
@@ -164,55 +165,59 @@ const LocationTracker = () => {
         <>
           <div className="flex-1 relative">
             <div className="relative w-full h-full flex items-center justify-center">
-              <MapContainer
-                center={location || [51.505, -0.09]}
-                zoom={13}
-                className="w-full h-full"
-                style={{ height: "calc(100% - 4rem)", width: "calc(100% - 4rem)" }}
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                />
-                <MapUpdater location={location} />
+              {location ? (
+                <MapContainer
+                  center={location}
+                  zoom={13}
+                  className="w-full h-full"
+                  style={{ height: "calc(100% - 4rem)", width: "calc(100% - 4rem)" }}
+                >
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  />
+                  <MapUpdater location={location} />
 
-                {selectedTrail && !tracking && (
-                  <>
-                    <Marker
-                      position={[
-                        selectedTrail.start.latitude,
-                        selectedTrail.start.longitude,
-                      ]}
-                    ></Marker>
-                    <Polyline
-                      positions={selectedTrail.path.map((pos) => [
-                        pos.latitude,
-                        pos.longitude,
-                      ])}
-                      color="blue"
-                    />
-                    <Marker
-                      position={[
-                        selectedTrail.stop.latitude,
-                        selectedTrail.stop.longitude,
-                      ]}
-                    ></Marker>
-                  </>
-                )}
+                  {selectedTrail && !tracking && (
+                    <>
+                      <Marker
+                        position={[
+                          selectedTrail.start.latitude,
+                          selectedTrail.start.longitude,
+                        ]}
+                      ></Marker>
+                      <Polyline
+                        positions={selectedTrail.path.map((pos) => [
+                          pos.latitude,
+                          pos.longitude,
+                        ])}
+                        color="blue"
+                      />
+                      <Marker
+                        position={[
+                          selectedTrail.stop.latitude,
+                          selectedTrail.stop.longitude,
+                        ]}
+                      ></Marker>
+                    </>
+                  )}
 
-                {tracking && path.length > 0 && (
-                  <>
-                    <Marker
-                      position={[path[0].latitude, path[0].longitude]}
-                    ></Marker>
-                    <Polyline
-                      positions={path.map((pos) => [pos.latitude, pos.longitude])}
-                      color="red"
-                    />
-                    <Marker position={location}></Marker>
-                  </>
-                )}
-              </MapContainer>
+                  {tracking && path.length > 0 && (
+                    <>
+                      <Marker
+                        position={[path[0].latitude, path[0].longitude]}
+                      ></Marker>
+                      <Polyline
+                        positions={path.map((pos) => [pos.latitude, pos.longitude])}
+                        color="red"
+                      />
+                      <Marker position={location}></Marker>
+                    </>
+                  )}
+                </MapContainer>
+              ) : (
+                <p>Loading current location...</p>
+              )}
             </div>
           </div>
           <div className="p-4 bg-gray-100">
