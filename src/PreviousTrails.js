@@ -6,6 +6,7 @@ import TrailMap from './TrailMap';
 const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
   const [editingTrail, setEditingTrail] = useState(null);
   const [newTrailName, setNewTrailName] = useState("");
+  const [sortOrder, setSortOrder] = useState("alphabetical"); // "alphabetical" or "date"
 
   const handleEditTrail = (trail) => {
     setEditingTrail(trail);
@@ -52,11 +53,34 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
     }
   };
 
+  const sortedTrails = [...trails].sort((a, b) => {
+    if (sortOrder === "alphabetical") {
+      return a.name.localeCompare(b.name);
+    } else if (sortOrder === "date") {
+      return new Date(a.date) - new Date(b.date); // Assuming `a.date` and `b.date` are valid date strings
+    }
+    return 0;
+  });
+
   return (
     <div className="w-full h-full p-4 bg-gray-100 overflow-auto">
       <h2 className="font-bold mb-4">Previous Trails</h2>
+      <div className="flex mb-4">
+        <button
+          className={`px-2 py-1 mr-2 rounded ${sortOrder === 'alphabetical' ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}
+          onClick={() => setSortOrder('alphabetical')}
+        >
+          Sort Alphabetically
+        </button>
+        <button
+          className={`px-2 py-1 rounded ${sortOrder === 'date' ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}
+          onClick={() => setSortOrder('date')}
+        >
+          Sort by Date
+        </button>
+      </div>
       <ul>
-        {trails.map((trail) => (
+        {sortedTrails.map((trail) => (
           <li
             key={trail.id}
             className="relative mb-4 p-2 rounded bg-white shadow-lg"
