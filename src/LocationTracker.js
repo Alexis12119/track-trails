@@ -129,9 +129,14 @@ const LocationTracker = () => {
         const startLocation = path[0];
         const stopLocation = path[path.length - 1];
 
+        const trailName = window.prompt(
+          "Enter a name for your trail:",
+          `Trail ${trails.length + 1}`,
+        );
+
         try {
           await addDoc(collection(db, `trails_${groupNumber}`), {
-            name: `Trail ${trails.length + 1}`,
+            name: trailName || `Trail ${trails.length + 1}`,
             start: {
               latitude: startLocation.latitude,
               longitude: startLocation.longitude,
@@ -175,10 +180,12 @@ const LocationTracker = () => {
   };
 
   const handleLogout = async () => {
-    try {
-      await auth.signOut();
-    } catch (error) {
-      console.error("Error signing out:", error);
+    if (window.confirm("Are you sure you want to log out?")) {
+      try {
+        await auth.signOut();
+      } catch (error) {
+        console.error("Error signing out:", error);
+      }
     }
   };
 

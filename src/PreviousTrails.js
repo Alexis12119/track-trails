@@ -3,7 +3,12 @@ import { deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "./firebase";
 import TrailMap from "./TrailMap";
 
-const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect, groupNumber }) => {
+const PreviousTrails = ({
+  trails,
+  fetchTrails,
+  handleTrailSelect,
+  groupNumber,
+}) => {
   const [editingTrail, setEditingTrail] = useState(null);
   const [newTrailName, setNewTrailName] = useState("");
   const [sortOrder, setSortOrder] = useState("alphabetical-asc");
@@ -31,15 +36,15 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect, groupNumber })
       alert("Trail name cannot be empty.");
       return;
     }
-
-    const isUnique = trails.every(
-      (trail) => trail.name !== newTrailName.trim(),
-    );
-    if (!isUnique) {
-      alert("Trail name must be unique.");
-      return;
-    }
-
+    //
+    // const isUnique = trails.every(
+    //   (trail) => trail.name !== newTrailName.trim(),
+    // );
+    // if (!isUnique) {
+    //   alert("Trail name must be unique.");
+    //   return;
+    // }
+    //
     try {
       await updateDoc(doc(db, `trails_${groupNumber}`, editingTrail.id), {
         name: newTrailName.trim(),
