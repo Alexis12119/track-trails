@@ -8,8 +8,8 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { db } from "./firebase";
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { db, auth } from "./firebase";
+import { collection, addDoc, getDocs, getDoc, doc } from "firebase/firestore";
 import PreviousTrails from "./PreviousTrails";
 
 // Fix leaflet's default icon issue with Webpack
@@ -31,10 +31,27 @@ const LocationTracker = () => {
   const [selectedTrail, setSelectedTrail] = useState(null);
   const [view, setView] = useState("current");
   const [loading, setLoading] = useState(true);
+  const [groupNumber, setGroupNumber] = useState("");
+
+  const fetchUserGroupNumber = useCallback(async () => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          setGroupNumber(userDoc.data().groupNumber);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching user group number:", error);
+    }
+  }, []);
 
   const fetchTrails = useCallback(async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, "trails"));
+      if (!groupNumber) return;
+      const trailsQuery = collection(db, `trails_${groupNumber}`);
+      const querySnapshot = await getDocs(trailsQuery);
       const trailsData = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -45,7 +62,11 @@ const LocationTracker = () => {
     } catch (error) {
       console.error("Error fetching trails:", error);
     }
-  }, []);
+  }, [groupNumber]);
+
+  useEffect(() => {
+    fetchUserGroupNumber();
+  }, [fetchUserGroupNumber]);
 
   useEffect(() => {
     fetchTrails();
@@ -109,7 +130,7 @@ const LocationTracker = () => {
         const stopLocation = path[path.length - 1];
 
         try {
-          await addDoc(collection(db, "trails"), {
+          await addDoc(collection(db, `trails_${groupNumber}`), {
             name: `Trail ${trails.length + 1}`,
             start: {
               latitude: startLocation.latitude,
@@ -150,10 +171,15 @@ const LocationTracker = () => {
 
   const handleTrailSelect = (trail) => {
     setSelectedTrail(trail);
-    setLocation([
-      trail.start.latitude,
-      trail.start.longitude,
-    ]);
+    setLocation([trail.start.latitude, trail.start.longitude]);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   const MapUpdater = ({ location }) => {
@@ -191,6 +217,12 @@ const LocationTracker = () => {
         >
           Previous Trails
         </button>
+        <button
+          onClick={handleLogout}
+          className="mb-4 px-2 py-2 bg-red-500 text-white rounded w-full"
+        >
+          Logout
+        </button>
       </div>
       {view === "current" ? (
         <>
@@ -203,7 +235,10 @@ const LocationTracker = () => {
                   center={location}
                   zoom={13}
                   className="w-full h-full"
-                  style={{ height: "calc(100% - 4rem)", width: "calc(100% - 4rem)" }}
+                  style={{
+                    height: "calc(100% - 4rem)",
+                    width: "calc(100% - 4rem)",
+                  }}
                 >
                   <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -241,17 +276,17 @@ const LocationTracker = () => {
                         position={[path[0].latitude, path[0].longitude]}
                       ></Marker>
                       <Polyline
-                        positions={path.map((pos) => [pos.latitude, pos.longitude])}
+                        positions={path.map((pos) => [
+                          pos.latitude,
+                          pos.longitude,
+                        ])}
                         color="red"
                       />
                       <Marker position={location}></Marker>
                     </>
                   )}
 
-                  {/* Always show the current location marker */}
-                  {location && (
-                    <Marker position={location}></Marker>
-                  )}
+                  {location && <Marker position={location}></Marker>}
                 </MapContainer>
               )}
             </div>
@@ -259,14 +294,21 @@ const LocationTracker = () => {
           <div className="p-4 bg-gray-100 flex justify-center items-center">
             <button
               onClick={handleStartStop}
-              className="mb-4 px-4 py-2 bg-blue-500 text-white rounded w-full max-w-xs"
+              className={`mb-4 px-4 py-2 rounded ${
+                tracking ? "bg-red-500 text-white" : "bg-green-500 text-white"
+              }`}
             >
-              {tracking ? "Stop" : "Start"}
+              {tracking ? "Stop" : "Start"} Tracking
             </button>
           </div>
         </>
       ) : (
-        <PreviousTrails trails={trails} fetchTrails={fetchTrails} handleTrailSelect={handleTrailSelect} />
+        <PreviousTrails
+          trails={trails}
+          fetchTrails={fetchTrails}
+          handleTrailSelect={handleTrailSelect}
+          groupNumber={groupNumber}
+        />
       )}
     </div>
   );

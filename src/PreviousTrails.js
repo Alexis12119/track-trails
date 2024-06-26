@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
-import { db } from './firebase';
-import TrailMap from './TrailMap';
+import React, { useState } from "react";
+import { deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { db } from "./firebase";
+import TrailMap from "./TrailMap";
 
-const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
+const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect, groupNumber }) => {
   const [editingTrail, setEditingTrail] = useState(null);
   const [newTrailName, setNewTrailName] = useState("");
   const [sortOrder, setSortOrder] = useState("alphabetical-asc");
@@ -16,7 +16,7 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
   const handleDeleteTrail = async (trailId) => {
     if (window.confirm("Are you sure you want to delete this trail?")) {
       try {
-        await deleteDoc(doc(db, "trails", trailId));
+        await deleteDoc(doc(db, `trails_${groupNumber}`, trailId));
         console.log("Trail deleted successfully");
         fetchTrails();
       } catch (error) {
@@ -41,7 +41,7 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
     }
 
     try {
-      await updateDoc(doc(db, "trails", editingTrail.id), {
+      await updateDoc(doc(db, `trails_${groupNumber}`, editingTrail.id), {
         name: newTrailName.trim(),
       });
       console.log("Trail updated successfully");
@@ -67,10 +67,10 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
   });
 
   return (
-    <div className="w-full h-full p-4 bg-gray-100 overflow-auto">
-      <div className="top-0 bg-gray-100 z-10">
+    <div className="w-full h-full flex flex-col">
+      <div className="top-0 bg-gray-100 z-10 mb-4 p-4">
         <select
-          className="mb-4 p-2 rounded border w-full"
+          className="p-2 rounded border w-full"
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
         >
@@ -80,7 +80,7 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
           <option value="old">Sort by Oldest</option>
         </select>
       </div>
-      <ul>
+      <ul className="flex-1 p-4 bg-gray-100">
         {sortedTrails.map((trail) => (
           <li
             key={trail.id}
@@ -117,7 +117,12 @@ const PreviousTrails = ({ trails, fetchTrails, handleTrailSelect }) => {
                 </form>
               ) : (
                 <>
-                  <span>{trail.name} <small>({new Date(trail.timestamp).toLocaleString()})</small></span>
+                  <span>
+                    {trail.name}{" "}
+                    <small>
+                      ({new Date(trail.timestamp).toLocaleString()})
+                    </small>
+                  </span>
                   <div className="flex">
                     <button
                       className="ml-2 px-2 py-1 bg-blue-500 text-white rounded"
