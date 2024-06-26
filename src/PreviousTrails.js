@@ -12,6 +12,7 @@ const PreviousTrails = ({
   const [editingTrail, setEditingTrail] = useState(null);
   const [newTrailName, setNewTrailName] = useState("");
   const [sortOrder, setSortOrder] = useState("alphabetical-asc");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleEditTrail = (trail) => {
     setEditingTrail(trail);
@@ -58,7 +59,11 @@ const PreviousTrails = ({
     }
   };
 
-  const sortedTrails = [...trails].sort((a, b) => {
+  const filteredTrails = trails.filter((trail) =>
+    trail.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const sortedTrails = filteredTrails.sort((a, b) => {
     if (sortOrder === "alphabetical-asc") {
       return a.name.localeCompare(b.name);
     } else if (sortOrder === "alphabetical-desc") {
@@ -74,6 +79,13 @@ const PreviousTrails = ({
   return (
     <div className="w-full h-full flex flex-col">
       <div className="top-0 bg-gray-100 z-10 mb-4 p-4">
+        <input
+          type="text"
+          className="p-2 mb-4 rounded border w-full"
+          placeholder="Search for a trail"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
         <select
           className="p-2 rounded border w-full"
           value={sortOrder}
