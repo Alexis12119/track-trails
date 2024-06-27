@@ -83,22 +83,22 @@ const LoginPage = ({ onLogin, onShowRegister, onShowResetPassword }) => {
           <div className="mb-6 relative">
             <label className="block text-gray-700 mb=2">Password</label>
             <div className="relative">
-            <input
-              type={passwordVisible ? "text" : "password"}
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 ${passwordError ? "border-red-500" : ""}`}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onFocus={() => handleFocus("password")}
-              autoComplete="new-password"
-              name="new-password"
-            />
-            <div
-              className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
-              onClick={togglePasswordVisibility}
-            >
-              {passwordVisible ? <FaEyeSlash /> : <FaEye />}
+              <input
+                type={passwordVisible ? "text" : "password"}
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 ${passwordError ? "border-red-500" : ""}`}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onFocus={() => handleFocus("password")}
+                autoComplete="new-password"
+                name="new-password"
+              />
+              <div
+                className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                onClick={togglePasswordVisibility}
+              >
+                {passwordVisible ? <FaEyeSlash /> : <FaEye />}
+              </div>
             </div>
-    </div>
             {passwordError && (
               <div className="absolute left-0 mt-1 text-xs bg-red-500 text-white p-2 rounded">
                 {passwordError}
