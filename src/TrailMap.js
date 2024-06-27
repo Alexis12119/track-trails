@@ -14,11 +14,11 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-const TrailMap = ({ trail, onNewPosition, isTracking }) => {
+const TrailMap = ({ trail, onNewPosition }) => {
   const [positions, setPositions] = useState(trail.path);
 
   useEffect(() => {
-    if (isTracking && "geolocation" in navigator) {
+    if ("geolocation" in navigator) {
       const watchId = navigator.geolocation.watchPosition(
         (position) => {
           const newPos = {
@@ -44,37 +44,30 @@ const TrailMap = ({ trail, onNewPosition, isTracking }) => {
       return () => {
         navigator.geolocation.clearWatch(watchId);
       };
+    } else {
+      console.error("Geolocation is not available in this browser.");
     }
-  }, [isTracking, onNewPosition]);
+  }, [onNewPosition]);
 
   return (
     <MapContainer
       center={[trail.start.latitude, trail.start.longitude]}
       zoom={13}
       className="w-full h-64 mb-4 rounded border"
-      style={{ height: "300px" }} // Ensure a square aspect ratio
+      style={{ height: "300px" }}
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      {positions.length > 0 && (
-        <>
-          <Marker
-            position={[positions[0].latitude, positions[0].longitude]}
-          ></Marker>
-          <Polyline
-            positions={positions.map((pos) => [pos.latitude, pos.longitude])}
-            color="blue"
-          />
-          <Marker
-            position={[
-              positions[positions.length - 1].latitude,
-              positions[positions.length - 1].longitude,
-            ]}
-          ></Marker>
-        </>
-      )}
+      <Marker position={[trail.start.latitude, trail.start.longitude]} />
+      <Polyline
+        positions={positions.map((pos) => [pos.latitude, pos.longitude])}
+        color="blue"
+      />
+      <Marker
+        position={[trail.stop.latitude, trail.stop.longitude]}
+      />
     </MapContainer>
   );
 };

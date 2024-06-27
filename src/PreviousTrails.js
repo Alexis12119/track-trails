@@ -13,7 +13,6 @@ const PreviousTrails = ({
   const [newTrailName, setNewTrailName] = useState("");
   const [sortOrder, setSortOrder] = useState("alphabetical-asc");
   const [searchQuery, setSearchQuery] = useState("");
-  const [trackingTrail, setTrackingTrail] = useState(null);
 
   const handleEditTrail = (trail) => {
     setEditingTrail(trail);
@@ -62,14 +61,6 @@ const PreviousTrails = ({
     } catch (error) {
       console.error("Error adding new position:", error);
     }
-  };
-
-  const handleStartTracking = (trail) => {
-    setTrackingTrail(trail);
-  };
-
-  const handleStopTracking = () => {
-    setTrackingTrail(null);
   };
 
   const filteredTrails = trails.filter((trail) =>
@@ -172,27 +163,6 @@ const PreviousTrails = ({
                     >
                       Delete
                     </button>
-                    {trackingTrail && trackingTrail.id === trail.id ? (
-                      <button
-                        className="ml-2 px-2 py-1 bg-yellow-500 text-white rounded"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleStopTracking();
-                        }}
-                      >
-                        Stop Tracking
-                      </button>
-                    ) : (
-                      <button
-                        className="ml-2 px-2 py-1 bg-green-500 text-white rounded"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleStartTracking(trail);
-                        }}
-                      >
-                        Start Tracking
-                      </button>
-                    )}
                   </div>
                 </>
               )}
@@ -200,10 +170,7 @@ const PreviousTrails = ({
             <div className="p-2">
               <TrailMap
                 trail={trail}
-                onNewPosition={(newPositions) =>
-                  handleNewPosition(trail.id, newPositions)
-                }
-                isTracking={trackingTrail && trackingTrail.id === trail.id}
+                onNewPosition={(newPositions) => handleNewPosition(trail.id, newPositions)}
               />
             </div>
           </li>
