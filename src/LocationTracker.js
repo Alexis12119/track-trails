@@ -11,6 +11,7 @@ import L from "leaflet";
 import { db, auth } from "./firebase";
 import { collection, addDoc, getDocs, getDoc, doc } from "firebase/firestore";
 import PreviousTrails from "./PreviousTrails";
+import CombinedTrails from "./CombinedTrails"; // Import the new component
 
 // Fix leaflet's default icon issue with Webpack
 delete L.Icon.Default.prototype._getIconUrl;
@@ -83,7 +84,7 @@ const LocationTracker = () => {
         console.error(error);
         setLoading(false);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   }, []);
 
@@ -105,7 +106,7 @@ const LocationTracker = () => {
             }, 5000);
           }
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     }
 
@@ -131,7 +132,7 @@ const LocationTracker = () => {
 
         const trailName = window.prompt(
           "Enter a name for your trail:",
-          `Trail ${trails.length + 1}`,
+          `Trail ${trails.length + 1}`
         );
 
         try {
@@ -156,46 +157,31 @@ const LocationTracker = () => {
         } catch (error) {
           console.error("Error saving trail:", error);
         }
+
+        setPath([]);
       }
     } else {
       setTracking(true);
-      setPath([]);
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setLocation([latitude, longitude]);
-          setPath([{ latitude, longitude }]);
-        },
-        (error) => {
-          console.error(error);
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
-      );
     }
   };
 
   const handleTrailSelect = (trail) => {
     setSelectedTrail(trail);
-    setLocation([trail.start.latitude, trail.start.longitude]);
-  };
-
-  const handleLogout = async () => {
-    if (window.confirm("Are you sure you want to log out?")) {
-      try {
-        await auth.signOut();
-      } catch (error) {
-        console.error("Error signing out:", error);
-      }
-    }
+    setView("current");
   };
 
   const handleViewChange = (newView) => {
     setView(newView);
-    localStorage.setItem('currentView', newView);
+    localStorage.setItem("currentView", newView);
+  };
+
+  const handleLogout = async () => {
+    await auth.signOut();
+    window.location.href = "/login";
   };
 
   useEffect(() => {
-    const savedView = localStorage.getItem('currentView');
+    const savedView = localStorage.getItem("currentView");
     if (savedView) {
       setView(savedView);
     }
@@ -219,9 +205,7 @@ const LocationTracker = () => {
         <button
           onClick={() => handleViewChange("current")}
           className={`mb-4 px-4 py-2 rounded w-full ${
-            view === "current"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200 text-black"
+            view === "current" ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
           }`}
         >
           Current Trail
@@ -229,12 +213,18 @@ const LocationTracker = () => {
         <button
           onClick={() => handleViewChange("previous")}
           className={`mb-4 px-4 py-2 rounded w-full ${
-            view === "previous"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200 text-black"
+            view === "previous" ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
           }`}
         >
           Previous Trails
+        </button>
+        <button
+          onClick={() => handleViewChange("combined")}
+          className={`mb-4 px-4 py-2 rounded w-full ${
+            view === "combined" ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
+          }`}
+        >
+          Combined Trails
         </button>
         <button
           onClick={handleLogout}
@@ -321,13 +311,15 @@ const LocationTracker = () => {
             </button>
           </div>
         </>
-      ) : (
+      ) : view === "previous" ? (
         <PreviousTrails
           trails={trails}
           fetchTrails={fetchTrails}
           handleTrailSelect={handleTrailSelect}
           groupNumber={groupNumber}
         />
+      ) : (
+        <CombinedTrails trails={trails} />
       )}
     </div>
   );
