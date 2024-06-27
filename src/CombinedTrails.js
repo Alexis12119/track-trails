@@ -15,7 +15,11 @@ L.Icon.Default.mergeOptions({
 });
 
 const CombinedTrails = ({ trails }) => {
-  const [selectedTrails, setSelectedTrails] = useState([]);
+  const [selectedTrails, setSelectedTrails] = useState(() => {
+    // Load selected trails from localStorage on component mount
+    const savedSelectedTrails = localStorage.getItem("selectedTrails");
+    return savedSelectedTrails ? JSON.parse(savedSelectedTrails) : [];
+  });
   const [mapCenter, setMapCenter] = useState([0, 0]);
 
   const handleTrailToggle = (trailId) => {
@@ -25,6 +29,11 @@ const CombinedTrails = ({ trails }) => {
         : [...prevSelected, trailId]
     );
   };
+
+  useEffect(() => {
+    // Save selected trails to localStorage whenever it changes
+    localStorage.setItem("selectedTrails", JSON.stringify(selectedTrails));
+  }, [selectedTrails]);
 
   useEffect(() => {
     if (selectedTrails.length > 0) {
