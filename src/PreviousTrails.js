@@ -13,6 +13,7 @@ const PreviousTrails = ({
   const [newTrailName, setNewTrailName] = useState("");
   const [sortOrder, setSortOrder] = useState("alphabetical-asc");
   const [searchQuery, setSearchQuery] = useState("");
+  const [trackingTrail, setTrackingTrail] = useState(null);
 
   const handleEditTrail = (trail) => {
     setEditingTrail(trail);
@@ -37,15 +38,6 @@ const PreviousTrails = ({
       alert("Trail name cannot be empty.");
       return;
     }
-    //
-    // const isUnique = trails.every(
-    //   (trail) => trail.name !== newTrailName.trim(),
-    // );
-    // if (!isUnique) {
-    //   alert("Trail name must be unique.");
-    //   return;
-    // }
-    //
     try {
       await updateDoc(doc(db, `trails_${groupNumber}`, editingTrail.id), {
         name: newTrailName.trim(),
@@ -57,6 +49,27 @@ const PreviousTrails = ({
     } catch (error) {
       console.error("Error updating trail:", error);
     }
+  };
+
+  const handleNewPosition = async (trailId, newPositions) => {
+    const trailRef = doc(db, `trails_${groupNumber}`, trailId);
+    try {
+      await updateDoc(trailRef, {
+        path: newPositions,
+      });
+      console.log("New position added successfully");
+      fetchTrails();
+    } catch (error) {
+      console.error("Error adding new position:", error);
+    }
+  };
+
+  const handleStartTracking = (trail) => {
+    setTrackingTrail(trail);
+  };
+
+  const handleStopTracking = () => {
+    setTrackingTrail(null);
   };
 
   const filteredTrails = trails.filter((trail) =>
@@ -159,12 +172,39 @@ const PreviousTrails = ({
                     >
                       Delete
                     </button>
+                    {trackingTrail && trackingTrail.id === trail.id ? (
+                      <button
+                        className="ml-2 px-2 py-1 bg-yellow-500 text-white rounded"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStopTracking();
+                        }}
+                      >
+                        Stop Tracking
+                      </button>
+                    ) : (
+                      <button
+                        className="ml-2 px-2 py-1 bg-green-500 text-white rounded"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStartTracking(trail);
+                        }}
+                      >
+                        Start Tracking
+                      </button>
+                    )}
                   </div>
                 </>
               )}
             </div>
             <div className="p-2">
-              <TrailMap trail={trail} />
+              <TrailMap
+                trail={trail}
+                onNewPosition={(newPositions) =>
+                  handleNewPosition(trail.id, newPositions)
+                }
+                isTracking={trackingTrail && trackingTrail.id === trail.id}
+              />
             </div>
           </li>
         ))}
