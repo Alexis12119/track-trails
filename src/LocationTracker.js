@@ -189,6 +189,18 @@ const LocationTracker = () => {
     }
   };
 
+  const handleViewChange = (newView) => {
+    setView(newView);
+    localStorage.setItem('currentView', newView);
+  };
+
+  useEffect(() => {
+    const savedView = localStorage.getItem('currentView');
+    if (savedView) {
+      setView(savedView);
+    }
+  }, []);
+
   const MapUpdater = ({ location }) => {
     const map = useMap();
 
@@ -205,7 +217,7 @@ const LocationTracker = () => {
     <div className="h-screen flex flex-col">
       <div className="p-4 bg-gray-100 flex justify-between">
         <button
-          onClick={() => setView("current")}
+          onClick={() => handleViewChange("current")}
           className={`mb-4 px-4 py-2 rounded w-full ${
             view === "current"
               ? "bg-blue-500 text-white"
@@ -215,7 +227,7 @@ const LocationTracker = () => {
           Current Trail
         </button>
         <button
-          onClick={() => setView("previous")}
+          onClick={() => handleViewChange("previous")}
           className={`mb-4 px-4 py-2 rounded w-full ${
             view === "previous"
               ? "bg-blue-500 text-white"
