@@ -37,6 +37,15 @@ const PreviousTrails = ({
       alert("Trail name cannot be empty.");
       return;
     }
+    //
+    // const isUnique = trails.every(
+    //   (trail) => trail.name !== newTrailName.trim(),
+    // );
+    // if (!isUnique) {
+    //   alert("Trail name must be unique.");
+    //   return;
+    // }
+    //
     try {
       await updateDoc(doc(db, `trails_${groupNumber}`, editingTrail.id), {
         name: newTrailName.trim(),
@@ -47,19 +56,6 @@ const PreviousTrails = ({
       fetchTrails();
     } catch (error) {
       console.error("Error updating trail:", error);
-    }
-  };
-
-  const handleNewPosition = async (trailId, newPositions) => {
-    const trailRef = doc(db, `trails_${groupNumber}`, trailId);
-    try {
-      await updateDoc(trailRef, {
-        path: newPositions,
-      });
-      console.log("New position added successfully");
-      fetchTrails();
-    } catch (error) {
-      console.error("Error adding new position:", error);
     }
   };
 
@@ -168,10 +164,7 @@ const PreviousTrails = ({
               )}
             </div>
             <div className="p-2">
-              <TrailMap
-                trail={trail}
-                onNewPosition={(newPositions) => handleNewPosition(trail.id, newPositions)}
-              />
+              <TrailMap trail={trail} />
             </div>
           </li>
         ))}
