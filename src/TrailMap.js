@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { MapContainer, TileLayer, Marker, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -14,60 +14,28 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-const TrailMap = ({ trail, onNewPosition }) => {
-  const [positions, setPositions] = useState(trail.path);
-
-  useEffect(() => {
-    if ("geolocation" in navigator) {
-      const watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const newPos = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          };
-          setPositions((prevPositions) => {
-            const updatedPositions = [...prevPositions, newPos];
-            onNewPosition(updatedPositions); // Callback to handle new positions
-            return updatedPositions;
-          });
-        },
-        (error) => {
-          console.error("Error getting geolocation:", error);
-        },
-        {
-          enableHighAccuracy: true,
-          maximumAge: 10000,
-          timeout: 5000,
-        }
-      );
-
-      return () => {
-        navigator.geolocation.clearWatch(watchId);
-      };
-    } else {
-      console.error("Geolocation is not available in this browser.");
-    }
-  }, [onNewPosition]);
-
+const TrailMap = ({ trail }) => {
   return (
     <MapContainer
       center={[trail.start.latitude, trail.start.longitude]}
       zoom={13}
       className="w-full h-64 mb-4 rounded border"
-      style={{ height: "300px" }}
+      style={{ height: "300px" }} // Ensure a square aspect ratio
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      <Marker position={[trail.start.latitude, trail.start.longitude]} />
+      <Marker
+        position={[trail.start.latitude, trail.start.longitude]}
+      ></Marker>
       <Polyline
-        positions={positions.map((pos) => [pos.latitude, pos.longitude])}
+        positions={trail.path.map((pos) => [pos.latitude, pos.longitude])}
         color="blue"
       />
       <Marker
         position={[trail.stop.latitude, trail.stop.longitude]}
-      />
+      ></Marker>
     </MapContainer>
   );
 };
