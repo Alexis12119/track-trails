@@ -9,9 +9,9 @@ import {
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { db, auth } from "./firebase";
-import { collection, addDoc, getDocs, getDoc, doc } from "firebase/firestore";
+import { collection, addDoc, getDocs, getDoc, doc, updateDoc } from "firebase/firestore";
 import PreviousTrails from "./PreviousTrails";
-import CombinedTrails from "./CombinedTrails"; 
+import CombinedTrails from "./CombinedTrails";
 
 // Fix leaflet's default icon issue with Webpack
 delete L.Icon.Default.prototype._getIconUrl;
@@ -132,27 +132,46 @@ const LocationTracker = () => {
 
         const trailName = window.prompt(
           "Enter a name for your trail:",
-          `Trail ${trails.length + 1}`,
+          `Trail ${trails.length + 1}`
         );
 
         try {
-          await addDoc(collection(db, `trails_${groupNumber}`), {
-            name: trailName || `Trail ${trails.length + 1}`,
-            start: {
-              latitude: startLocation.latitude,
-              longitude: startLocation.longitude,
-            },
-            stop: {
-              latitude: stopLocation.latitude,
-              longitude: stopLocation.longitude,
-            },
-            path: path.map((pos) => ({
-              latitude: pos.latitude,
-              longitude: pos.longitude,
-            })),
-            timestamp: new Date(),
-          });
-          console.log("Trail saved successfully");
+          const existingTrail = selectedTrail
+            ? await getDoc(doc(db, `trails_${groupNumber}`, selectedTrail.id))
+            : null;
+
+          const newPaths = existingTrail
+            ? [...existingTrail.data().paths, path.map((pos) => ({
+                latitude: pos.latitude,
+                longitude: pos.longitude
+              }))]
+            : [path.map((pos) => ({
+                latitude: pos.latitude,
+                longitude: pos.longitude
+              }))];
+
+          if (existingTrail) {
+            await updateDoc(doc(db, `trails_${groupNumber}`, selectedTrail.id), {
+              paths: newPaths
+            });
+            console.log("Trail updated successfully");
+          } else {
+            await addDoc(collection(db, `trails_${groupNumber}`), {
+              name: trailName || `Trail ${trails.length + 1}`,
+              start: {
+                latitude: startLocation.latitude,
+                longitude: startLocation.longitude
+              },
+              stop: {
+                latitude: stopLocation.latitude,
+                longitude: stopLocation.longitude
+              },
+              paths: newPaths,
+              timestamp: new Date()
+            });
+            console.log("Trail saved successfully");
+          }
+
           fetchTrails();
         } catch (error) {
           console.error("Error saving trail:", error);
@@ -261,16 +280,11 @@ const LocationTracker = () => {
                   />
                   <MapUpdater location={location} />
 
-                  {selectedTrail && !tracking && (
-                    <>
-                      <Marker
-                        position={[
-                          selectedTrail.start.latitude,
-                          selectedTrail.start.longitude,
-                        ]}
-                      ></Marker>
+                  {selectedTrail && !tracking && selectedTrail.paths.map((path, index) => (
+                    <React.Fragment key={index}>
+                      <Marker position={[path[0].latitude, path[0].longitude]}></Marker>
                       <Polyline
-                        positions={selectedTrail.path.map((pos) => [
+                        positions={path.map((pos) => [
                           pos.latitude,
                           pos.longitude,
                         ])}
@@ -278,51 +292,36 @@ const LocationTracker = () => {
                       />
                       <Marker
                         position={[
-                          selectedTrail.stop.latitude,
-                          selectedTrail.stop.longitude,
+                          path[path.length - 1].latitude,
+                          path[path.length - 1].longitude,
                         ]}
                       ></Marker>
-                    </>
-                  )}
+                    </React.Fragment>
+                  ))}
 
-                  {tracking && path.length > 0 && (
-                    <>
-                      <Marker
-                        position={[path[0].latitude, path[0].longitude]}
-                      ></Marker>
-                      <Polyline
-                        positions={path.map((pos) => [
-                          pos.latitude,
-                          pos.longitude,
-                        ])}
-                        color="red"
-                      />
-                      <Marker position={location}></Marker>
-                    </>
+                  {path.length > 0 && (
+                    <Polyline
+                      positions={path.map((pos) => [pos.latitude, pos.longitude])}
+                      color="red"
+                    />
                   )}
-
                   {location && <Marker position={location}></Marker>}
                 </MapContainer>
               )}
             </div>
           </div>
-          <div className="p-4 bg-gray-100 flex justify-center items-center">
-            <button
-              onClick={handleStartStop}
-              className={`mb-4 px-4 py-2 rounded ${
-                tracking ? "bg-red-500 text-white" : "bg-green-500 text-white"
+          <button
+            onClick={handleStartStop}
+            className={`p-4 text-white ${tracking ? "bg-red-500" : "bg-blue-500"
               }`}
-            >
-              {tracking ? "Stop" : "Start"} Tracking
-            </button>
-          </div>
+          >
+            {tracking ? "Stop" : "Start"}
+          </button>
         </>
       ) : view === "previous" ? (
         <PreviousTrails
           trails={trails}
-          fetchTrails={fetchTrails}
           handleTrailSelect={handleTrailSelect}
-          groupNumber={groupNumber}
         />
       ) : (
         <CombinedTrails trails={trails} />

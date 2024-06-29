@@ -26,16 +26,18 @@ const TrailMap = ({ trail }) => {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      <Marker
-        position={[trail.start.latitude, trail.start.longitude]}
-      ></Marker>
-      <Polyline
-        positions={trail.path.map((pos) => [pos.latitude, pos.longitude])}
-        color="blue"
-      />
-      <Marker
-        position={[trail.stop.latitude, trail.stop.longitude]}
-      ></Marker>
+      {trail.paths.map((path, index) => (
+        <React.Fragment key={index}>
+          <Marker position={[path[0].latitude, path[0].longitude]}></Marker>
+          <Polyline
+            positions={path.map((pos) => [pos.latitude, pos.longitude])}
+            color="blue"
+          />
+          <Marker
+            position={[path[path.length - 1].latitude, path[path.length - 1].longitude]}
+          ></Marker>
+        </React.Fragment>
+      ))}
     </MapContainer>
   );
 };
