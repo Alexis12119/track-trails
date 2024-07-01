@@ -6,7 +6,6 @@ import TrailMap from "./TrailMap";
 const PreviousTrails = ({
   trails,
   fetchTrails,
-  handleTrailSelect,
   groupNumber,
 }) => {
   const [editingTrail, setEditingTrail] = useState(null);
@@ -105,7 +104,6 @@ const PreviousTrails = ({
           >
             <div
               className="cursor-pointer hover:bg-gray-200 p-2 rounded flex justify-between items-center"
-              onClick={() => handleTrailSelect(trail)}
             >
               {trail.id === editingTrail?.id ? (
                 <form
